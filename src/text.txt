@@ -1,0 +1,1 @@
+Welcome to the toolbox! To begin, load an utterance from your datasets or record one yourself.Once its embedding has been created, you can synthesize any text written here.
