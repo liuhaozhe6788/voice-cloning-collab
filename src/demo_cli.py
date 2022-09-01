@@ -8,8 +8,10 @@ import librosa
 import numpy as np
 import soundfile as sf
 import torch
+import noisereduce as nr
 
 from encoder import inference as encoder
+from encoder.params_data import *
 from encoder.params_model import model_embedding_size as speaker_embedding_size
 from synthesizer.inference import Synthesizer
 from utils.argutils import print_args
@@ -135,6 +137,8 @@ if __name__ == '__main__':
             message = "Reference voice: enter an audio filepath of a voice to be cloned (mp3, " \
                       "wav, m4a, flac, ...):\n"
             in_fpath = Path(input(message).replace("\"", "").replace("\'", ""))
+            fpath_without_ext = os.path.splitext(str(in_fpath))[0]
+            speaker_name = os.path.normpath(fpath_without_ext).split(os.sep)[-1]
 
             ## Computing the embedding
             # First, we load the wav using the function that the speaker encoder provides. This is
@@ -146,6 +150,7 @@ if __name__ == '__main__':
             # - If the wav is already loaded:
             wav = Synthesizer.load_preprocess_wav(in_fpath)
             preprocessed_wav = encoder.preprocess_wav(wav)
+            # preprocessed_wav = nr.reduce_noise(preprocessed_wav, sampling_rate)
             print("Loaded file succesfully")
 
             # Then we derive the embedding. There are many functions and parameters that the
@@ -165,17 +170,20 @@ if __name__ == '__main__':
                 synthesizer = Synthesizer(args.syn_model_fpath)
 
             # The synthesizer works in batch, so you need to put your data in a list or numpy array
-            text = text.replace(',', '.')
-            text = text.replace(';', '.')
-            text = text.replace(':', '.')
-            texts = [i.text.strip() for i in nlp(text).sents]  # split paragraph to sentences
-            print(texts)
+            def split_text(text):
+                text = text.replace(',', '.')
+                text = text.replace(';', '.')
+                text = text.replace(':', '.')
+                texts = [i.text.strip() for i in nlp(text).sents]  # split paragraph to sentences
+                return texts
+            texts = split_text(text)
+            print(f"the list of inputs texts:\n{texts}")
 
             embeds = [embed] * len(texts)
             # If you know what the attention layer alignments are, you can retrieve them here by
             # passing return_alignments=True
             specs, alignments = synthesizer.synthesize_spectrograms(texts, embeds, return_alignments=True)
-            save_attention(alignments.detach().cpu().numpy()[0, :, :], "attention")
+            save_attention(alignments.detach().cpu().numpy()[-1, :, :], "attention")
 
             breaks = [spec.shape[1] for spec in specs]
             spec = np.concatenate(specs, axis=1)
@@ -221,7 +229,8 @@ if __name__ == '__main__':
                     raise
 
             # Save it on the disk
-            filename = "demo_output_%02d.wav" % num_generated
+            # filename = "demo_output_%02d.wav" % num_generated
+            filename = f"out_audios\{speaker_name}.wav"
             print(wav.dtype)
             sf.write(filename, wav.astype(np.float32), synthesizer.sample_rate)
             num_generated += 1
