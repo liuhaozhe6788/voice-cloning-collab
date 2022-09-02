@@ -152,6 +152,7 @@ if __name__ == '__main__':
             preprocessed_wav = encoder.preprocess_wav(wav)
             # preprocessed_wav = nr.reduce_noise(preprocessed_wav, sampling_rate)
             print("Loaded file succesfully")
+            
 
             # Then we derive the embedding. There are many functions and parameters that the
             # speaker encoder interfaces. These are mostly for in-depth research. You will typically
@@ -198,12 +199,15 @@ if __name__ == '__main__':
                 torch.manual_seed(args.seed)
                 vocoder.load_model(args.voc_model_fpath)
 
+
             # Synthesizing the waveform is fairly straightforward. Remember that the longer the
             # spectrogram, the more time-efficient the vocoder.
             if not args.griffin_lim:
                 wav = vocoder.infer_waveform(spec)
             else:
                 wav = Synthesizer.griffin_lim(spec)
+
+            wav = vocoder.waveform_denoising(wav)
 
             # Add breaks
             b_ends = np.cumsum(np.array(breaks) * Synthesizer.hparams.hop_size)
@@ -230,7 +234,7 @@ if __name__ == '__main__':
 
             # Save it on the disk
             # filename = "demo_output_%02d.wav" % num_generated
-            filename = f"out_audios\{speaker_name}.wav"
+            filename = f"out_audios/{speaker_name}.wav"
             print(wav.dtype)
             sf.write(filename, wav.astype(np.float32), synthesizer.sample_rate)
             num_generated += 1

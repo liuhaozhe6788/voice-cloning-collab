@@ -1,6 +1,8 @@
 from vocoder.models.fatchord_version import WaveRNN
 from vocoder import hparams as hp
+from scipy.fft import rfft
 import torch
+import numpy as np
 import noisereduce as nr    
 
 
@@ -62,4 +64,15 @@ def infer_waveform(mel, normalize=True,  batched=True, target=8000, overlap=800,
         mel = mel / hp.mel_max_abs_value
     mel = torch.from_numpy(mel[None, ...])
     wav = _model.generate(mel, batched, target, overlap, hp.mu_law, progress_callback)
-    return nr.reduce_noise(wav, hp.sample_rate)
+    return wav
+
+def waveform_denoising(wav):
+    split_freq = 1000
+    fft_wav = rfft(wav)
+    fft_max = max(fft_wav)
+    fft_max_freq = np.where(fft_wav == fft_max)[0][0]
+    # print(fft_max_freq)
+    prop_decrease = 0.6 if fft_max_freq < split_freq else 0.9
+    # prop_decrease = 0.6 for low freq audio
+    # prop_decrease = 0.9 for high freq audio
+    return nr.reduce_noise(wav, hp.sample_rate, prop_decrease=prop_decrease)
