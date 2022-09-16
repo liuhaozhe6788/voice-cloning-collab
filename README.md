@@ -6,5 +6,5 @@
 **2022.07.29：** I added model validation for encoder, synthesizer and vocoder.<br>
 **2022.08.02：** I added voxceleb train and dev data for encoder. I added noise reduce method for the output wav from vocoder.<br>
 noisereduce reference: https://github.com/timsainb/noisereduce<br>
-**2022.08.06：** I split the long text into short sentences using spacy for input of synthesizer.<br>
+**2022.08.06：** I split the long text into short sentences using spacy for input of synthesizer. Make sure to install English dataset en_core_web_sm, say by python -m spacy download en_core_web_sm<br>
 **2022.09.02：** I set prop_decrease=0.6 for male and 0.9 for female in noisereduce function<br>
