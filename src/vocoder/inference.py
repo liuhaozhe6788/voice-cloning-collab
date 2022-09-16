@@ -67,7 +67,7 @@ def infer_waveform(mel, normalize=True,  batched=True, target=8000, overlap=800,
     return wav
 
 def waveform_denoising(wav):
-    split_freq = 1000
+    split_freq = 1500
     fft_wav = rfft(wav)
     fft_max = max(fft_wav)
     fft_max_freq = np.where(fft_wav == fft_max)[0][0]
