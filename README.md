@@ -8,4 +8,4 @@
 noisereduce reference: https://github.com/timsainb/noisereduce<br>
 **2022.08.06：** I split the long text into short sentences using spacy for input of synthesizer. Make sure to install English dataset en_core_web_sm, say by ***python -m spacy download en_core_web_sm***<br>
 **2022.09.02：** I set prop_decrease=0.6 for male and 0.9 for female in noisereduce function<br>
-**2022.09.26：** I added speed adjustment for output audios using praat<br>
+**2022.09.26：** I added speed adjustment for output audios using praat, install parselmouth using pip: ***pip install praat-parselmouth***<br>
