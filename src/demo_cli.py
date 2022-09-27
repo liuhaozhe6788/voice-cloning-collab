@@ -150,6 +150,15 @@ if __name__ == '__main__':
             # preprocessed_wav = encoder.preprocess_wav(in_fpath)
             # - If the wav is already loaded:
             wav = Synthesizer.load_preprocess_wav(in_fpath)
+
+            # get duration info from input audio
+            audio_ori_wav = TransFormat(in_fpath, 'wav')
+            # 除了m4a格式无法工作而必须转换以外，无论原格式是否为wav，从稳定性的角度考虑也最好再转为wav（因为某些wav本身不带比特率属性，无法在此代码中工作，因此需要转换以赋予其该属性）
+            path_ori, filename_ori = os.path.split(audio_ori_wav)
+            totDur_ori, nPause_ori, arDur_ori, nSyl_ori, arRate_ori = AudioAnalysis(path_ori, filename_ori)
+            DelFile(path_ori, '.TextGrid')
+            os.remove(audio_ori_wav)  # remove intermediate wav files
+            
             preprocessed_wav = encoder.preprocess_wav(wav)
             # preprocessed_wav = nr.reduce_noise(preprocessed_wav, sampling_rate)
             print("Loaded file succesfully")
@@ -228,7 +237,12 @@ if __name__ == '__main__':
             print("\nSaved output (havent't change speed) as %s\n\n" % filename)
 
             # Fix Speed(generate new audio)
-            fix_file = work(str(in_fpath), filename)
+            fix_file = work(totDur_ori, 
+                            nPause_ori, 
+                            arDur_ori, 
+                            nSyl_ori, 
+                            arRate_ori, 
+                            filename)
             print(f"\nSaved output (fixed speed) as {fix_file}\n\n")
 
 
