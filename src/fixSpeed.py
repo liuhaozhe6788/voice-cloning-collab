@@ -43,10 +43,12 @@ def FixSpeed(totDur_ori: float,
     speed_factor = round(arRate_ori/arRate_syn, 2)
     print(f"speed_factor = {speed_factor}")
     if speed_factor == 0:
-        print("error!")
+        print("error!\n The speed factor is 0")
+        return audio_syn
     else:
         out_file = os.path.join(path_syn, name_syn + "_{}".format(speed_factor) + suffix_syn)
         audio.a_speed(audio_syn, speed_factor, out_file)
+        os.remove(audio_syn)  # remove intermediate wav files
         print(f"Finished!\nThe path of out_file is {out_file}")
     return out_file
 
@@ -84,7 +86,6 @@ def work(totDur_ori: float,
     # DelFile(in_path, '.TextGrid')
     out_path, _ = os.path.split(audio_syn)
     DelFile(out_path, '.TextGrid')
-    os.remove(audio_syn)  # remove intermediate wav files
     return fix_file
 
 
