@@ -1,7 +1,11 @@
 import os
 from ffmpeg import audio
 from pathlib import Path
+import numpy as np
 import parselmouth
+from synthesizer.inference import Synthesizer
+from synthesizer.hparams import hparams
+import soundfile as sf
 from parselmouth.praat import run_file
 from pydub import AudioSegment
 
@@ -40,12 +44,13 @@ def FixSpeed(totDur_ori: float,
 
     print(f"for original audio:\n\ttotDur = {totDur_ori}s\n\tnPause = {nPause_ori}\n\tarDur = {arDur_ori}s\n\tnSyl = {nSyl_ori}\n\tarRate = {arRate_ori} per second\n-----")
     print(f"for synthesized audio:\n\ttotDur = {totDur_syn}s\n\tnPause = {nPause_syn}\n\tarDur = {arDur_syn}s\n\tnSyl = {nSyl_syn}\n\tarRate = {arRate_syn} per second\n-----")
-    speed_factor = round(arRate_ori/arRate_syn, 2)
-    print(f"speed_factor = {speed_factor}")
-    if speed_factor == 0:
-        print("error!\n The speed factor is 0")
+
+    if arRate_ori * arRate_syn == 0:
+        print("exception!\n The speed factor is 0 or infinite")
         return audio_syn
     else:
+        speed_factor = round(arRate_ori/arRate_syn, 2)
+        print(f"speed_factor = {speed_factor}")
         out_file = os.path.join(path_syn, name_syn + "_{}".format(speed_factor) + suffix_syn)
         audio.a_speed(audio_syn, speed_factor, out_file)
         os.remove(audio_syn)  # remove intermediate wav files
@@ -54,12 +59,17 @@ def FixSpeed(totDur_ori: float,
 
 
 def TransFormat(fullpath, out_suffix):
+    is_wav_file = False  # 原始音频的后缀是否为.wav
     path_, name = os.path.split(fullpath)
-    name, _ = os.path.splitext(name)
-    sourcefile = AudioSegment.from_file(fullpath)
-    out_file = os.path.join(path_, name + "." + str(out_suffix))  
-    sourcefile.export(out_file, format = str(out_suffix))
-    return str(out_file)
+    name, suffix = os.path.splitext(name)
+    wav = Synthesizer.load_preprocess_wav(fullpath)
+    if suffix == ".wav":  # 如果原始音频的后缀为.wav，则不用进行格式转换
+        is_wav_file = True
+        return is_wav_file, wav, str(fullpath)
+    else:  # 如果原始音频的后缀不是.wav，则需要进行格式转换
+        out_file = os.path.join(path_, name + "." + str(out_suffix))  
+        sf.write(out_file, wav.astype(np.float32), hparams.sample_rate)
+        return is_wav_file, wav, str(out_file)
 
 
 def DelFile(rootDir, matchText: str):

@@ -8,7 +8,6 @@ import librosa
 import numpy as np
 import soundfile as sf
 import torch
-import noisereduce as nr
 
 from encoder import inference as encoder
 from encoder.params_data import *
@@ -149,18 +148,17 @@ if __name__ == '__main__':
             # - Directly load from the filepath:
             # preprocessed_wav = encoder.preprocess_wav(in_fpath)
             # - If the wav is already loaded:
-            wav = Synthesizer.load_preprocess_wav(in_fpath)
 
             # get duration info from input audio
-            audio_ori_wav = TransFormat(in_fpath, 'wav')
+            is_wav_file, wav, wav_path = TransFormat(in_fpath, 'wav')
             # 除了m4a格式无法工作而必须转换以外，无论原格式是否为wav，从稳定性的角度考虑也最好再转为wav（因为某些wav本身不带比特率属性，无法在此代码中工作，因此需要转换以赋予其该属性）
-            path_ori, filename_ori = os.path.split(audio_ori_wav)
+            path_ori, filename_ori = os.path.split(wav_path)
             totDur_ori, nPause_ori, arDur_ori, nSyl_ori, arRate_ori = AudioAnalysis(path_ori, filename_ori)
             DelFile(path_ori, '.TextGrid')
-            os.remove(audio_ori_wav)  # remove intermediate wav files
+            if not is_wav_file:
+                os.remove(wav_path)  # remove intermediate wav files
             
             preprocessed_wav = encoder.preprocess_wav(wav)
-            # preprocessed_wav = nr.reduce_noise(preprocessed_wav, sampling_rate)
             print("Loaded file succesfully")
 
             # Then we derive the embedding. There are many functions and parameters that the
