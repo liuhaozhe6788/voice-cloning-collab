@@ -1,6 +1,6 @@
 from vocoder.models.fatchord_version import WaveRNN
 from vocoder import hparams as hp
-from scipy.fft import rfft
+from scipy.fft import rfft, rfftfreq
 import torch
 import numpy as np
 import noisereduce as nr    
@@ -67,12 +67,21 @@ def infer_waveform(mel, normalize=True,  batched=True, target=8000, overlap=800,
     return wav
 
 def waveform_denoising(wav):
-    split_freq = 1500
-    fft_wav = rfft(wav)
-    fft_max = max(fft_wav)
-    fft_max_freq = np.where(fft_wav == fft_max)[0][0]
-    # print(fft_max_freq)
-    prop_decrease = 0.6 if fft_max_freq < split_freq else 0.9
+    fft_max_freq = get_dominant_freq(wav)
+    prop_decrease = hp.prop_decrease_low_freq if fft_max_freq < hp.split_freq else hp.prop_decrease_high_freq
     # prop_decrease = 0.6 for low freq audio
     # prop_decrease = 0.9 for high freq audio
+    print(f"\nthe dominant frequency of output audio is {fft_max_freq}Hz")
     return nr.reduce_noise(wav, hp.sample_rate, prop_decrease=prop_decrease)
+
+def get_dominant_freq(wav):
+    N = len(wav)
+    fft_wav = rfft(wav)
+    fft_freq = rfftfreq(N, 1 / hp.sample_rate)
+    fft_max = max(fft_wav)
+    fft_max_index = np.where(fft_wav == fft_max)[0][0]
+    fft_max_freq = fft_freq[fft_max_index]
+    # plt.plot(fft_freq, fft_wav)
+    # plt.clf()
+    # plt.savefig(f"{speaker_name}.png", dpi=300)
+    return fft_max_freq

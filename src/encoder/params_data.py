@@ -27,3 +27,8 @@ vad_max_silence_length = 6
 ## Audio volume normalization
 audio_norm_target_dBFS = -30
 
+# 判断用户输入语音为男声或女声的分界频率
+split_freq = 170  
+# embed去噪置零的阈值
+set_zero_thres=0.0
+

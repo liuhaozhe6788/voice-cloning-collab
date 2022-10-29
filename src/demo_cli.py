@@ -3,11 +3,13 @@ from ctypes import alignment
 import os
 from pathlib import Path
 import spacy
+import matplotlib.pyplot as plt
 
 import librosa
 import numpy as np
 import soundfile as sf
 import torch
+import noisereduce as nr  
 
 from encoder import inference as encoder
 from encoder.params_data import *
@@ -130,6 +132,7 @@ if __name__ == '__main__':
     num_generated = 0
 
     nlp = spacy.load('en_core_web_sm')
+    weight = 1 # 声音美颜的用户语音权重
 
     while True:
         try:
@@ -155,19 +158,39 @@ if __name__ == '__main__':
             path_ori, filename_ori = os.path.split(wav_path)
             totDur_ori, nPause_ori, arDur_ori, nSyl_ori, arRate_ori = AudioAnalysis(path_ori, filename_ori)
             DelFile(path_ori, '.TextGrid')
+
             if not is_wav_file:
                 os.remove(wav_path)  # remove intermediate wav files
             
             preprocessed_wav = encoder.preprocess_wav(wav)
-            print("Loaded file succesfully")
+
+            print("Loaded input audio file succesfully")
 
             # Then we derive the embedding. There are many functions and parameters that the
             # speaker encoder interfaces. These are mostly for in-depth research. You will typically
             # only use this function (with its default parameters):
-            embed = encoder.embed_utterance(preprocessed_wav)
-            # embed_filename = f"{os.path.basename(in_fpath).split('.')[0]}.npy"
-            # print("Created the embedding")
+            input_embed = encoder.embed_utterance(preprocessed_wav)
 
+            # Choose standard audio
+
+            fft_max_freq = vocoder.get_dominant_freq(preprocessed_wav)
+            print(f"\nthe dominant frequency of input audio is {fft_max_freq}Hz")
+            if fft_max_freq < split_freq:
+                standard_fpath = "standard_audios/male_1.wav"
+            else:
+                standard_fpath = "standard_audios/female_1.wav"
+
+            standard_wav = Synthesizer.load_preprocess_wav(standard_fpath)
+            preprocessed_standard_wav = encoder.preprocess_wav(standard_wav)
+            print("Loaded standard audio file succesfully")
+
+            standard_embed = encoder.embed_utterance(preprocessed_standard_wav)
+
+            embed1=input_embed.dot(weight)
+            embed2=standard_embed.dot(1 - weight)
+            embed=embed1+embed2
+
+            embed[embed < set_zero_thres]=0 # 噪声值置零
 
             ## Generating the spectrogram
             text = input("Write a sentence to be synthesized:\n")
@@ -176,12 +199,19 @@ if __name__ == '__main__':
             if args.seed is not None:
                 torch.manual_seed(args.seed)
                 synthesizer = Synthesizer(args.syn_model_fpath)
-
+            
+            import re
             # The synthesizer works in batch, so you need to put your data in a list or numpy array
             def split_text(text):
+                text = text.replace('-', ' ')
                 text = text.replace(',', '.')
                 text = text.replace(';', '.')
                 text = text.replace(':', '.')
+                def convert(match_obj):
+                    if match_obj.group() is not None:
+                        return match_obj.group().replace('.', ',')
+                    
+                text = re.sub(r"[0-9]+[\.][0-9]+", convert, text)
                 texts = [i.text.strip() for i in nlp(text).sents]  # split paragraph to sentences
                 return texts
             texts = split_text(text)

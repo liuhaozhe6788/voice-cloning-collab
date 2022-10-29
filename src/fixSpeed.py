@@ -7,8 +7,9 @@ from synthesizer.inference import Synthesizer
 from synthesizer.hparams import hparams
 import soundfile as sf
 from parselmouth.praat import run_file
-from pydub import AudioSegment
 
+high_lim_speed_factor = 1.0
+low_lim_speed_factor = 0.6
 
 def AudioAnalysis(dir, file):
     sound = os.path.join(dir, file) 
@@ -45,12 +46,14 @@ def FixSpeed(totDur_ori: float,
     print(f"for original audio:\n\ttotDur = {totDur_ori}s\n\tnPause = {nPause_ori}\n\tarDur = {arDur_ori}s\n\tnSyl = {nSyl_ori}\n\tarRate = {arRate_ori} per second\n-----")
     print(f"for synthesized audio:\n\ttotDur = {totDur_syn}s\n\tnPause = {nPause_syn}\n\tarDur = {arDur_syn}s\n\tnSyl = {nSyl_syn}\n\tarRate = {arRate_syn} per second\n-----")
 
-    if arRate_ori * arRate_syn == 0:
-        print("exception!\n The speed factor is 0 or infinite")
+    speed_factor = round(arRate_ori/arRate_syn, 2)
+    print(f"speed_factor = {speed_factor}")
+    if arRate_ori * arRate_syn == 0 or\
+       speed_factor > high_lim_speed_factor or\
+       speed_factor < low_lim_speed_factor:
+        print("exception!\n The speed factor is abnormal")
         return audio_syn
     else:
-        speed_factor = round(arRate_ori/arRate_syn, 2)
-        print(f"speed_factor = {speed_factor}")
         out_file = os.path.join(path_syn, name_syn + "_{}".format(speed_factor) + suffix_syn)
         audio.a_speed(audio_syn, speed_factor, out_file)
         os.remove(audio_syn)  # remove intermediate wav files
