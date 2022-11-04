@@ -258,6 +258,8 @@ if __name__ == '__main__':
 
             # Save it on the disk
             # filename = "demo_output_%02d.wav" % num_generated
+            if not os.path.exists("out_audios"):
+                os.mkdir("out_audios")
             filename = f"out_audios/{speaker_name}_syn.wav"
             # print(wav.dtype)
             sf.write(filename, wav.astype(np.float32), synthesizer.sample_rate)
