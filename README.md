@@ -12,4 +12,3 @@ noisereduce reference: https://github.com/timsainb/noisereduce<br>
 **2022.10.10：** We added voice filter functioning(声音美颜) for input audios, the weight ratio of the input audio embed and the standard audio embed is 7: 3. <br>
 **2022.10.25：** We set small values(<0.06) to zeros in embed.(对嵌入向量较小值置零)<br>
 **2022.10.26：** The split frequency for input audio is 170Hz. The split frequency for output noise reduce is 165Hz.<br>
-**2022.11.04：**
