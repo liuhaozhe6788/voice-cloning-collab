@@ -30,7 +30,7 @@ if __name__ == '__main__':
     "Name for this model. By default, training outputs will be stored to saved_models/<run_id>/. If a model state "
     "from the same run ID was previously saved, the training will restart from there. Pass -f to overwrite saved "
     "states and restart from scratch.")
-    parser.add_argument("-m", "--models_dir", type=Path, default="src/saved_models",
+    parser.add_argument("-m", "--models_dir", type=Path, default="saved_models",
                         help="Directory containing all saved models")
     parser.add_argument("--griffin_lim",
                         action="store_true",
@@ -71,7 +71,7 @@ if __name__ == '__main__':
         print("Preparing the encoder, the synthesizer and the vocoder...")
     else:
         print("Preparing the encoder and the synthesizer...")
-    ensure_default_models(args.run_id, Path("src/saved_models"))
+    ensure_default_models(args.run_id, Path("saved_models"))
     encoder.load_model(list(args.models_dir.glob(f"{args.run_id}/encoder.pt"))[0])
     synthesizer = Synthesizer(list(args.models_dir.glob(f"{args.run_id}/synthesizer.pt"))[0])
     if not args.griffin_lim:
@@ -176,9 +176,9 @@ if __name__ == '__main__':
             fft_max_freq = vocoder.get_dominant_freq(preprocessed_wav)
             print(f"\nthe dominant frequency of input audio is {fft_max_freq}Hz")
             if fft_max_freq < split_freq:
-                standard_fpath = "src/standard_audios/male_1.wav"
+                standard_fpath = "standard_audios/male_1.wav"
             else:
-                standard_fpath = "src/standard_audios/female_1.wav"
+                standard_fpath = "standard_audios/female_1.wav"
 
             standard_wav = Synthesizer.load_preprocess_wav(standard_fpath)
             preprocessed_standard_wav = encoder.preprocess_wav(standard_wav)
