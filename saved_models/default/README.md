@@ -1,0 +1,1 @@
+This model is the same as "20220829" model
