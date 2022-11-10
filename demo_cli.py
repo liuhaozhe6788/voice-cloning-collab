@@ -205,15 +205,15 @@ if __name__ == '__main__':
             import re
             # The synthesizer works in batch, so you need to put your data in a list or numpy array
             def split_text(text):
+                def convert(match_obj):
+                    if match_obj.group() is not None:
+                        return match_obj.group().replace(',', '')
+                text = re.sub(r"[0-9]+[\,][0-9]+", convert, text)
                 text = text.replace('-', ' ')
                 text = text.replace(',', '.')
                 text = text.replace(';', '.')
                 text = text.replace(':', '.')
-                def convert(match_obj):
-                    if match_obj.group() is not None:
-                        return match_obj.group().replace('.', ',')
                     
-                text = re.sub(r"[0-9]+[\.][0-9]+", convert, text)
                 texts = [i.text.strip() for i in nlp(text).sents]  # split paragraph to sentences
                 return texts
             texts = split_text(text)

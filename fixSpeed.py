@@ -46,10 +46,12 @@ def FixSpeed(totDur_ori: float,
     print(f"for original audio:\n\ttotDur = {totDur_ori}s\n\tnPause = {nPause_ori}\n\tarDur = {arDur_ori}s\n\tnSyl = {nSyl_ori}\n\tarRate = {arRate_ori} per second\n-----")
     print(f"for synthesized audio:\n\ttotDur = {totDur_syn}s\n\tnPause = {nPause_syn}\n\tarDur = {arDur_syn}s\n\tnSyl = {nSyl_syn}\n\tarRate = {arRate_syn} per second\n-----")
 
+    if arRate_syn == 0:
+        print("exception!\n The speed factor is abnormal")
+        return audio_syn
     speed_factor = round(arRate_ori/arRate_syn, 2)
     print(f"speed_factor = {speed_factor}")
-    if arRate_ori * arRate_syn == 0 or\
-       speed_factor > high_lim_speed_factor or\
+    if speed_factor > high_lim_speed_factor or\
        speed_factor < low_lim_speed_factor:
         print("exception!\n The speed factor is abnormal")
         return audio_syn
