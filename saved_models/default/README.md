@@ -1,1 +1,2 @@
-This model is the same as "20220829" model
+8月29日新增VoxCeleb数据集后继续训练的模型
+
