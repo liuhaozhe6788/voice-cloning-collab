@@ -133,6 +133,7 @@ if __name__ == '__main__':
 
     nlp = spacy.load('en_core_web_sm')
     weight = 1 # 声音美颜的用户语音权重
+    amp = 1
 
     while True:
         try:
@@ -191,6 +192,7 @@ if __name__ == '__main__':
             embed=embed1+embed2
 
             embed[embed < set_zero_thres]=0 # 噪声值置零
+            embed = embed * amp
 
             ## Generating the spectrogram
             text = input("Write a sentence to be synthesized:\n")
@@ -203,15 +205,15 @@ if __name__ == '__main__':
             import re
             # The synthesizer works in batch, so you need to put your data in a list or numpy array
             def split_text(text):
+                def convert(match_obj):
+                    if match_obj.group() is not None:
+                        return match_obj.group().replace(',', '')
+                text = re.sub(r"[0-9]+[\,][0-9]+", convert, text)
                 text = text.replace('-', ' ')
                 text = text.replace(',', '.')
                 text = text.replace(';', '.')
                 text = text.replace(':', '.')
-                def convert(match_obj):
-                    if match_obj.group() is not None:
-                        return match_obj.group().replace('.', ',')
                     
-                text = re.sub(r"[0-9]+[\.][0-9]+", convert, text)
                 texts = [i.text.strip() for i in nlp(text).sents]  # split paragraph to sentences
                 return texts
             texts = split_text(text)
