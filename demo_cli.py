@@ -133,6 +133,7 @@ if __name__ == '__main__':
 
     nlp = spacy.load('en_core_web_sm')
     weight = 1 # 声音美颜的用户语音权重
+    amp = 1
 
     while True:
         try:
@@ -191,6 +192,7 @@ if __name__ == '__main__':
             embed=embed1+embed2
 
             embed[embed < set_zero_thres]=0 # 噪声值置零
+            embed = embed * amp
 
             ## Generating the spectrogram
             text = input("Write a sentence to be synthesized:\n")
