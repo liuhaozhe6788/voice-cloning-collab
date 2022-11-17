@@ -1,4 +1,37 @@
-# voice-cloning
+# Voice-Cloning
+## Training Commands
+**Encoder Preprocessing：** 
+```
+python encoder_preprocess.py <datasets_root>
+```
+
+**Encoder Training：** 
+```
+python encoder_train.py my_run <datasets_root>/SV2TTS/encoder
+```
+
+**Synthesizer Preprocessing:** 
+```
+python synthesizer_preprocess_audio.py <datasets_root>
+python synthesizer_preprocess_embeds.py <datasets_root>/SV2TTS/synthesizer
+```
+
+**Synthesizer Training:** 
+```
+python synthesizer_train.py my_run <datasets_root>/SV2TTS/synthesizer
+```
+
+**Vocoder Preprocessing:** 
+```
+python vocoder_preprocess.py <datasets_root>
+```
+
+**Vocoder Training:** 
+```
+python vocoder_train.py my_run <datasets_root>
+```
+
+
 ## Version updates
 **2022.05.19：** We calculated GE2E loss in encoder with cuda rather than originally-configured CPU. It speeds up the encoder training speed.<br>
 **2022.07.15：** We added Loss animation plot for synthesizer and vocoder.<br>
