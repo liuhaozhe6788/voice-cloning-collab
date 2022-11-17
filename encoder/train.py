@@ -88,7 +88,7 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
     device_name = str(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU")
     vis.log_implementation({"Device": device_name})
     
-    best_eer_file_path = "src/encoder_loss/best_eer.npy"
+    best_eer_file_path = "encoder_loss/best_eer.npy"
     best_eer = np.load(best_eer_file_path)[0] if exists(best_eer_file_path) else 1
 
     # Training loop
