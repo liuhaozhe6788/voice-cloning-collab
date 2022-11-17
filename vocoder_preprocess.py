@@ -19,7 +19,7 @@ if __name__ == "__main__":
         "Path to the directory containing your SV2TTS directory. If you specify both --in_dir and "
         "--out_dir, this argument won't be used.")
     parser.add_argument("-s", "--syn_model_fpath", type=Path,
-                        default="src/saved_models/default/synthesizer.pt",
+                        default="saved_models/default/synthesizer.pt",
                         help="Path to a saved synthesizer")
     parser.add_argument("-i", "--in_dir", type=Path, default=argparse.SUPPRESS, help= \
         "Path to the synthesizer directory that contains the mel spectrograms, the wavs and the "
