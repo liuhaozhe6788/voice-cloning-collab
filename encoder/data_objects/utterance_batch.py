@@ -1,4 +1,4 @@
-from zipfile import Path
+from pathlib import Path
 import numpy as np
 from typing import List
 from encoder.data_objects.utterance import Utterance

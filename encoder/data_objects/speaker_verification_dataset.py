@@ -53,7 +53,7 @@ class Dev_Dataset(Dataset):
         
     
 class DataLoader(DataLoader):
-    def __init__(self, dataset, speakers_per_batch, utterances_per_speaker, sampler=None, 
+    def __init__(self, dataset, speakers_per_batch, utterances_per_speaker, shuffle, sampler=None, 
                  batch_sampler=None, num_workers=0, pin_memory=False, timeout=0, 
                  worker_init_fn=None):
         self.utterances_per_speaker = utterances_per_speaker
@@ -61,7 +61,7 @@ class DataLoader(DataLoader):
         super().__init__(
             dataset=dataset, 
             batch_size=speakers_per_batch, 
-            shuffle=False, 
+            shuffle=shuffle, 
             sampler=sampler, 
             batch_sampler=batch_sampler, 
             num_workers=num_workers,
