@@ -60,6 +60,10 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
     weights_fpath = model_dir / "vocoder.pt"
     train_loss_file_path = "vocoder_loss/vocoder_train_loss.npy"
     dev_loss_file_path = "vocoder_loss/vocoder_dev_loss.npy"
+
+    if not exists("vocoder_loss"):
+        import os
+        os.mkdir("vocoder_loss")
     if force_restart or not weights_fpath.exists():
         print("\nStarting the training of WaveRNN from scratch\n")
         model.save(weights_fpath, optimizer)

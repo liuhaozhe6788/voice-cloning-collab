@@ -93,6 +93,9 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
     
     train_loss_file_path = "synthesizer_loss/synthesizer_train_loss.npy"
     dev_loss_file_path = "synthesizer_loss/synthesizer_dev_loss.npy"
+    if not exists("synthesizer_loss"):
+        import os
+        os.mkdir("synthesizer_loss")
     
     # Load the weights
     if force_restart or not weights_fpath.exists():

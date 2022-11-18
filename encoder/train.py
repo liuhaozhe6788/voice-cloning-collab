@@ -89,6 +89,9 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
     vis.log_implementation({"Device": device_name})
     
     best_eer_file_path = "encoder_loss/best_eer.npy"
+    if not exists("encoder_loss"):
+        import os
+        os.mkdir("encoder_loss")
     best_eer = np.load(best_eer_file_path)[0] if exists(best_eer_file_path) else 1
 
     # Training loop
