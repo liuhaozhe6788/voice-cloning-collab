@@ -1,4 +1,4 @@
-.vscode/
+launch.json
 *.pyc
 *.aux
 *.log
@@ -20,3 +20,4 @@
 *.pt
 *.whl
 *.m4a
+*.mp3
