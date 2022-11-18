@@ -93,6 +93,9 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
     
     train_loss_file_path = "synthesizer_loss/synthesizer_train_loss.npy"
     dev_loss_file_path = "synthesizer_loss/synthesizer_dev_loss.npy"
+    if not exists("synthesizer_loss"):
+        import os
+        os.mkdir("synthesizer_loss")
     
     # Load the weights
     if force_restart or not weights_fpath.exists():
@@ -126,8 +129,8 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
     train_dataset = SynthesizerDataset(train_metadata_fpath, train_mel_dir, train_embed_dir, hparams)
     dev_dataset = SynthesizerDataset(dev_metadata_fpath, dev_mel_dir, dev_embed_dir, hparams)
 
-    best_loss_file_path = "src/synthesizer_loss/best_loss.npy"
-    best_loss = np.load(best_loss_file_path)[0] if exists(best_loss_file_path) else 1
+    best_loss_file_path = "synthesizer_loss/best_loss.npy"
+    best_loss = np.load(best_loss_file_path)[0] if exists(best_loss_file_path) else 1000
 
     # profiler = Profiler(summarize_every=10, disabled=False)
     for i, session in enumerate(hparams.tts_schedule):
