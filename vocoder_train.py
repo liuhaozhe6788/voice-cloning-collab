@@ -25,7 +25,7 @@ if __name__ == "__main__":
     parser.add_argument("--voc_dir", type=Path, default=argparse.SUPPRESS, help= \
         "Path to the vocoder directory that contains the GTA synthesized mel spectrograms. "
         "Defaults to <datasets_root>/SV2TTS/vocoder/. Unused if --ground_truth is passed.")
-    parser.add_argument("-m", "--models_dir", type=Path, default="src/saved_models", help=\
+    parser.add_argument("-m", "--models_dir", type=Path, default="saved_models", help=\
         "Path to the directory that will contain the saved model weights, as well as backups "
         "of those weights and wavs generated during training.")
     parser.add_argument("-g", "--ground_truth", action="store_true", help= \
