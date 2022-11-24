@@ -1,4 +1,8 @@
 # Voice-Cloning
+## Installation
+```
+pip install -r requirements.txt
+```
 ## Training Commands
 **Encoder Preprocessing：** 
 ```
