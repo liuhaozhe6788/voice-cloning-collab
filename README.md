@@ -34,7 +34,17 @@ python vocoder_preprocess.py <datasets_root>
 ```
 python vocoder_train.py my_run <datasets_root>
 ```
+## Inference Commands
 
+**Terminal:** 
+```
+python demo_cli.py
+```
+
+**GUI:** 
+```
+python demo_toolbox.py
+```
 
 ## Version updates
 **2022.05.19：** We calculated GE2E loss in encoder with cuda rather than originally-configured CPU. It speeds up the encoder training speed.<br>
