@@ -135,34 +135,58 @@ if __name__ == '__main__':
     weight = 1 # 声音美颜的用户语音权重
     amp = 1
 
+    # while True:
+    # try:
+    # Get the reference audio filepath
     while True:
-        # try:
-        # Get the reference audio filepath
-        message = "Reference voice: enter an audio filepath of a voice to be cloned (mp3, " \
+        message1 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
                     "wav, m4a, flac, ...):\n"
-        in_fpath = Path(input(message).replace("\"", "").replace("\'", ""))
+        in_fpath = Path(input(message1).replace("\"", "").replace("\'", ""))
         fpath_without_ext = os.path.splitext(str(in_fpath))[0]
         speaker_name = os.path.normpath(fpath_without_ext).split(os.sep)[-1]
 
-        ## Computing the embedding
-        # First, we load the wav using the function that the speaker encoder provides. This is
-        # important: there is preprocessing that must be applied.
+        # collect the filename of all audios
+        audio_list = os.listdir(fpath_without_ext)
+        for i in range(len(audio_list)):
+            audio_list[i] = os.path.join(in_fpath, audio_list[i])
 
-        # The following two methods are equivalent:
-        # - Directly load from the filepath:
-        # preprocessed_wav = encoder.preprocess_wav(in_fpath)
-        # - If the wav is already loaded:
+        # enter the number of reference audios
+        message2 = "Please enter the number of reference audios:\n"
+        num_of_input_audio = int(input(message2))
+        # rerun the program if the number is wrong
+        if num_of_input_audio > len(audio_list) or num_of_input_audio == 0:
+            print("The number of input audio is wrong, rerun the program.")
+            continue
 
-        # get duration info from input audio
-        is_wav_file, wav, wav_path = TransFormat(in_fpath, 'wav')
-        # 除了m4a格式无法工作而必须转换以外，无论原格式是否为wav，从稳定性的角度考虑也最好再转为wav（因为某些wav本身不带比特率属性，无法在此代码中工作，因此需要转换以赋予其该属性）
+        for i in range(num_of_input_audio):
+            # Computing the embedding
+            # First, we load the wav using the function that the speaker encoder provides. This is
+            # important: there is preprocessing that must be applied.
+
+            # The following two methods are equivalent:
+            # - Directly load from the filepath:
+            # preprocessed_wav = encoder.preprocess_wav(in_fpath)
+            # - If the wav is already loaded:
+
+            # get duration info from input audio
+            is_wav_file, single_wav, wav_path = TransFormat(Path(audio_list[i]), 'wav')
+            # 除了m4a格式无法工作而必须转换以外，无论原格式是否为wav，从稳定性的角度考虑也最好再转为wav（因为某些wav本身不带比特率属性，无法在此代码中工作，因此需要转换以赋予其该属性）
+
+            if not is_wav_file:
+                os.remove(wav_path)  # remove intermediate wav files
+            # merge
+            if i == 0:
+                wav = single_wav
+            else:
+                wav = np.append(wav, single_wav)
+        # test
+        sf.write('test.wav', wav, samplerate=16000)
+
+        # adjust the speed
         path_ori, filename_ori = os.path.split(wav_path)
         totDur_ori, nPause_ori, arDur_ori, nSyl_ori, arRate_ori = AudioAnalysis(path_ori, filename_ori)
         DelFile(path_ori, '.TextGrid')
 
-        if not is_wav_file:
-            os.remove(wav_path)  # remove intermediate wav files
-        
         preprocessed_wav = encoder.preprocess_wav(wav)
 
         print("Loaded input audio file succesfully")
@@ -171,7 +195,6 @@ if __name__ == '__main__':
         # speaker encoder interfaces. These are mostly for in-depth research. You will typically
         # only use this function (with its default parameters):
         input_embed = encoder.embed_utterance(preprocessed_wav)
-
         # Choose standard audio
 
         fft_max_freq = vocoder.get_dominant_freq(preprocessed_wav)
