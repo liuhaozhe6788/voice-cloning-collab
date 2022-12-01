@@ -139,24 +139,9 @@ if __name__ == '__main__':
     # try:
     # Get the reference audio filepath
     while True:
-        message1 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
-                    "wav, m4a, flac, ...):\n"
-        in_fpath = Path(input(message1).replace("\"", "").replace("\'", ""))
-        fpath_without_ext = os.path.splitext(str(in_fpath))[0]
-        speaker_name = os.path.normpath(fpath_without_ext).split(os.sep)[-1]
-
-        # collect the filename of all audios
-        audio_list = os.listdir(fpath_without_ext)
-        for i in range(len(audio_list)):
-            audio_list[i] = os.path.join(in_fpath, audio_list[i])
-
         # enter the number of reference audios
-        message2 = "Please enter the number of reference audios:\n"
-        num_of_input_audio = int(input(message2))
-        # rerun the program if the number is wrong
-        if num_of_input_audio > len(audio_list) or num_of_input_audio == 0:
-            print("The number of input audio is wrong, rerun the program.")
-            continue
+        message1 = "Please enter the number of reference audios:\n"
+        num_of_input_audio = int(input(message1))
 
         for i in range(num_of_input_audio):
             # Computing the embedding
@@ -169,7 +154,13 @@ if __name__ == '__main__':
             # - If the wav is already loaded:
 
             # get duration info from input audio
-            is_wav_file, single_wav, wav_path = TransFormat(Path(audio_list[i]), 'wav')
+            message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
+                       "wav, m4a, flac, ...):\n"
+            in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
+            fpath_without_ext = os.path.splitext(str(in_fpath))[0]
+            speaker_name = os.path.normpath(fpath_without_ext).split(os.sep)[-1]
+
+            is_wav_file, single_wav, wav_path = TransFormat(in_fpath, 'wav')
             # 除了m4a格式无法工作而必须转换以外，无论原格式是否为wav，从稳定性的角度考虑也最好再转为wav（因为某些wav本身不带比特率属性，无法在此代码中工作，因此需要转换以赋予其该属性）
 
             if not is_wav_file:
@@ -179,8 +170,8 @@ if __name__ == '__main__':
                 wav = single_wav
             else:
                 wav = np.append(wav, single_wav)
-        # test
-        sf.write('test.wav', wav, samplerate=16000)
+        # # test
+        # sf.write('test.wav', wav, samplerate=16000)
 
         # adjust the speed
         path_ori, filename_ori = os.path.split(wav_path)
