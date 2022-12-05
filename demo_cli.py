@@ -155,7 +155,7 @@ if __name__ == '__main__':
 
             # get duration info from input audio
             message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
-                       "wav, m4a, flac, ...):\n"
+                       f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
             in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
             fpath_without_ext = os.path.splitext(str(in_fpath))[0]
             speaker_name = os.path.normpath(fpath_without_ext).split(os.sep)[-1]
