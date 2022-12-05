@@ -165,27 +165,27 @@ def preprocess_voxceleb1(datasets_root: Path, out_dir: Path, skip_existing=False
     train_dataset_root = dataset_root.joinpath("train")
     dev_dataset_root = dataset_root.joinpath("dev")
 
-    # # Preprocess train data
-    # # Get the contents of the meta file
-    # with train_dataset_root.joinpath("vox1_meta.csv").open("r") as metafile:
-    #     metadata = [line.split("\t") for line in metafile][1:]
+    # Preprocess train data
+    # Get the contents of the meta file
+    with train_dataset_root.joinpath("vox1_meta.csv").open("r") as metafile:
+        metadata = [line.split("\t") for line in metafile][1:]
 
-    # # Select the ID and the nationality, filter out non-anglophone speakers
-    # nationalities = {line[0]: line[3] for line in metadata}
-    # keep_speaker_ids = [speaker_id for speaker_id, nationality in nationalities.items() if
-    #                     nationality.lower() in anglophone_nationalites]
-    # print("VoxCeleb1: using samples from %d (presumed anglophone) speakers out of %d." %
-    #       (len(keep_speaker_ids), len(nationalities)))
+    # Select the ID and the nationality, filter out non-anglophone speakers
+    nationalities = {line[0]: line[3] for line in metadata}
+    keep_speaker_ids = [speaker_id for speaker_id, nationality in nationalities.items() if
+                        nationality.lower() in anglophone_nationalites]
+    print("VoxCeleb1: using samples from %d (presumed anglophone) speakers out of %d." %
+          (len(keep_speaker_ids), len(nationalities)))
 
-    # # Get the speaker directories for anglophone speakers only
-    # train_speaker_dirs = train_dataset_root.joinpath("wav").glob("*")
-    # train_speaker_dirs = [speaker_dir for speaker_dir in train_speaker_dirs if
-    #                 speaker_dir.name in keep_speaker_ids]
-    # print("VoxCeleb1 train: found %d anglophone speakers on the disk, %d missing (this is normal)." %
-    #       (len(train_speaker_dirs), len(keep_speaker_ids) - len(train_speaker_dirs)))
+    # Get the speaker directories for anglophone speakers only
+    train_speaker_dirs = train_dataset_root.joinpath("wav").glob("*")
+    train_speaker_dirs = [speaker_dir for speaker_dir in train_speaker_dirs if
+                    speaker_dir.name in keep_speaker_ids]
+    print("VoxCeleb1 train: found %d anglophone speakers on the disk, %d missing (this is normal)." %
+          (len(train_speaker_dirs), len(keep_speaker_ids) - len(train_speaker_dirs)))
 
-    # # Preprocess all speakers
-    # _preprocess_speaker_dirs(train_speaker_dirs, dataset_name, datasets_root, out_dir.joinpath("train"), skip_existing, logger)
+    # Preprocess all speakers
+    _preprocess_speaker_dirs(train_speaker_dirs, dataset_name, datasets_root, out_dir.joinpath("train"), skip_existing, logger)
 
 
     # Preprocess dev data
@@ -223,8 +223,8 @@ def preprocess_voxceleb2(datasets_root: Path, out_dir: Path, skip_existing=False
 
     # Get the speaker directories
     # Preprocess all speakers
-    # speaker_dirs = list(train_dataset_root.joinpath("dev", "aac").glob("*"))
-    # _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir.joinpath("train"), skip_existing, logger)
+    speaker_dirs = list(train_dataset_root.joinpath("dev", "aac").glob("*"))
+    _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir.joinpath("train"), skip_existing, logger)
     
     # Get the speaker directories
     # Preprocess all speakers
