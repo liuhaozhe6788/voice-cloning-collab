@@ -195,21 +195,26 @@ if __name__ == '__main__':
         else:
             standard_fpath = "standard_audios/female_1.wav"
 
-        standard_wav = Synthesizer.load_preprocess_wav(standard_fpath)
-        preprocessed_standard_wav = encoder.preprocess_wav(standard_wav)
-        print("Loaded standard audio file succesfully")
+        if os.path.exists(standard_fpath):
 
-        standard_embed = encoder.embed_utterance(preprocessed_standard_wav)
+            standard_wav = Synthesizer.load_preprocess_wav(standard_fpath)
+            preprocessed_standard_wav = encoder.preprocess_wav(standard_wav)
+            print("Loaded standard audio file succesfully")
 
-        embed1=input_embed.dot(weight)
-        embed2=standard_embed.dot(1 - weight)
-        embed=embed1+embed2
+            standard_embed = encoder.embed_utterance(preprocessed_standard_wav)
+
+            embed1=np.copy(input_embed).dot(weight)
+            embed2=np.copy(standard_embed).dot(1 - weight)
+            embed=embed1+embed2
+        else: 
+            embed = np.copy(input_embed)
 
         embed[embed < set_zero_thres]=0 # 噪声值置零
         embed = embed * amp
 
         ## Generating the spectrogram
         text = input("Write a sentence to be synthesized:\n")
+        
 
         # If seed is specified, reset torch seed and force synthesizer reload
         if args.seed is not None:
