@@ -20,7 +20,7 @@ from utils.default_models import ensure_default_models
 from vocoder import inference as vocoder
 from vocoder.display import save_attention
 from fixSpeed import *
-
+import hashtable
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -227,9 +227,12 @@ if __name__ == '__main__':
             text = text.replace(',', '.')
             text = text.replace(';', '.')
             text = text.replace(':', '.')
-                
+            text = text.replace('~', ' to ')
+            text=hashtable.splitword(text)    
             texts = [i.text.strip() for i in nlp(text).sents]  # split paragraph to sentences
             return texts
+
+
         texts = split_text(text)
         print(f"the list of inputs texts:\n{texts}")
 
