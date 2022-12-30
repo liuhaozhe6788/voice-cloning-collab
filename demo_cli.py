@@ -231,7 +231,6 @@ if __name__ == '__main__':
             text = text.replace('-', ' ')
             text = text.replace(',', '.')
             text = text.replace(';', '.')
-            text = text.replace(':', '.')
             text = text.replace('~', ' to ')
             text=hashtable.splitword(text)    
             texts = [i.text.strip() for i in nlp(text).sents]  # split paragraph to sentences
