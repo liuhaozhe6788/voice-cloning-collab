@@ -151,6 +151,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     args = vars(args)
-    # for i in range(10):
+
     test_visualization(**args)
     
