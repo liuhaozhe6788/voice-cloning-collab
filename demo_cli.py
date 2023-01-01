@@ -244,8 +244,8 @@ if __name__ == '__main__':
 
         if not os.path.exists("tts_results"):
             os.mkdir("tts_results")
-        save_attention(alignments.detach().cpu().numpy(), "tts_results/attention")
-        save_spectrogram(spec, "tts_results/mel")
+        save_attention(alignments.detach().cpu().numpy(), "syn_results/attention")
+        save_spectrogram(spec, "syn_results/mel")
         print("Created the mel spectrogram")
 
 
