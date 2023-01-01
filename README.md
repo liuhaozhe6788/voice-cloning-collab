@@ -60,3 +60,5 @@ noisereduce reference: https://github.com/timsainb/noisereduce<br>
 **2022.10.25：** We set small values(<0.06) to zeros in embed.(对嵌入向量较小值置零)<br>
 **2022.10.26：** The split frequency for input audio is 170Hz. The split frequency for output noise reduce is 165Hz.<br>
 **2022.12.01：** merge the single sentences to input.<br>
+**2022.12.31：** added speaker embeddings dimension reduction visualzation results.<br>
+**2023.01.01：** did more text preprocessing and cleaning for TTS text input.<br>
