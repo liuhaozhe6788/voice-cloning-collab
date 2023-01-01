@@ -62,6 +62,26 @@ def collapse_whitespace(text):
 def convert_to_ascii(text):
     return unidecode(text)
 
+def split_conj(text):
+    wordtable=['at','on','in','during','for','before','after','since','until',
+        'between','under','over','above','below','by','beside','near','next to','outside','inside',
+        'behind','with','through']
+    a='\\b('+"|".join([' ' + i for i in wordtable])+')\\b'
+    b=re.sub(a,r". \1",text)
+
+    return b
+
+def add_breaks(text):
+    def convert(match_obj):
+        if match_obj.group() is not None:
+            return match_obj.group().replace(',', '')
+    text = re.sub(r"[0-9]+[\,][0-9]+", convert, text)
+    text = text.replace('-', ' ')
+    text = text.replace(',', '.')
+    text = text.replace(';', '.')
+    text = text.replace('~', ' to ')
+    return text
+
 
 def basic_cleaners(text):
     """Basic pipeline that lowercases and collapses whitespace without transliteration."""
@@ -80,9 +100,10 @@ def transliteration_cleaners(text):
 
 def english_cleaners(text):
     """Pipeline for English text, including number and abbreviation expansion."""
-    text = convert_to_ascii(text)
     text = lowercase(text)
     text = expand_numbers(text)
     text = expand_abbreviations(text)
     text = collapse_whitespace(text)
+    text = add_breaks(text)
+    text = split_conj(text) 
     return text
