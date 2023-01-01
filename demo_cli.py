@@ -18,7 +18,7 @@ from synthesizer.inference import Synthesizer
 from utils.argutils import print_args
 from utils.default_models import ensure_default_models
 from vocoder import inference as vocoder
-from vocoder.display import save_attention
+from vocoder.display import save_attention, save_spectrogram
 from synthesizer.utils.cleaners import english_cleaners
 from fixSpeed import *
 
@@ -237,10 +237,15 @@ if __name__ == '__main__':
         # If you know what the attention layer alignments are, you can retrieve them here by
         # passing return_alignments=True
         specs, alignments = synthesizer.synthesize_spectrograms(texts, embeds, return_alignments=True)
-        save_attention(alignments.detach().cpu().numpy()[-1, :, :], "attention")
+        
 
         breaks = [spec.shape[1] for spec in specs]
         spec = np.concatenate(specs, axis=1)
+
+        if not os.path.exists("tts_results"):
+            os.mkdir("tts_results")
+        save_attention(alignments.detach().cpu().numpy(), "tts_results/attention")
+        save_spectrogram(spec, "tts_results/mel")
         print("Created the mel spectrogram")
 
 

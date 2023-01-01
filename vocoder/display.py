@@ -86,10 +86,27 @@ def time_since(started) :
 def save_attention(attn, path):
     import matplotlib.pyplot as plt
 
-    fig = plt.figure(figsize=(12, 6))
-    plt.imshow(attn.T, interpolation='nearest', aspect='auto')
-    fig.savefig(f'{path}.png', bbox_inches='tight')
-    plt.close(fig)
+    if attn.ndim == 2:
+        fig = plt.figure(figsize=(12, 6))
+        plt.imshow(attn.T, interpolation='nearest', aspect='auto')
+        plt.xlabel("Decoder Timestep")
+        plt.ylabel("Encoder Timestep")
+        plt.title("Encoder-Decoder Alignment")
+        fig.savefig(f'{path}.png', bbox_inches='tight')
+        plt.close(fig)
+    elif attn.ndim == 3:
+        num_plots = attn.shape[0]
+        fig = plt.figure(figsize=(12, 6 * num_plots))
+        for i, a in enumerate(attn):
+            plt.subplot(num_plots, 1, i+1)
+            plt.imshow(a.T, interpolation='nearest', aspect='auto')
+            plt.xlabel("Decoder Timestep")
+            plt.ylabel("Encoder Timestep")
+            plt.title("Encoder-Decoder Alignment")
+        fig.savefig(f'{path}.png', bbox_inches='tight')
+        plt.close(fig)
+    else:
+        pass
 
 
 def save_spectrogram(M, path, length=None):
@@ -99,6 +116,9 @@ def save_spectrogram(M, path, length=None):
     if length : M = M[:, :length]
     fig = plt.figure(figsize=(12, 6))
     plt.imshow(M, interpolation='nearest', aspect='auto')
+    plt.xlabel("Time")
+    plt.ylabel("Frequency")
+    plt.title("Generated Mel Spectrogram")
     fig.savefig(f'{path}.png', bbox_inches='tight')
     plt.close(fig)
 
