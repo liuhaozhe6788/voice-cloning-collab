@@ -2,6 +2,7 @@ from datetime import datetime
 from functools import partial
 from multiprocessing import Pool
 from pathlib import Path
+import argparse
 
 import numpy as np
 from tqdm import tqdm
@@ -128,39 +129,39 @@ def _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir,
     logger.finalize()
     print("Done preprocessing %s.\n" % dataset_name)
 
-def preprocess_voxceleb1test(datasets_root: Path, out_dir: Path, skip_existing=False):
-    # Initialize the preprocessing
-    dataset_name = "VoxCeleb1"
-    dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
-    if not dataset_root:
-        return
-    
-    test_dataset_root = dataset_root.joinpath("test")
-
-    # Preprocess test data
-    # Get the contents of the meta file
-    with test_dataset_root.joinpath("vox1_meta.csv").open("r") as metafile:
-        metadata = [line.split("\t") for line in metafile][1:]
-
-    # Select the ID and the nationality, filter out non-anglophone speakers
-    nationalities = {line[0]: line[3] for line in metadata}
-    keep_speaker_ids = [speaker_id for speaker_id, nationality in nationalities.items() if
-                        nationality.lower() in anglophone_nationalites]
-    print("VoxCeleb1: using samples from %d (presumed anglophone) speakers out of %d." %
-          (len(keep_speaker_ids), len(nationalities)))
-
-    # Get the speaker directories for anglophone speakers only
-    test_speaker_dirs = test_dataset_root.joinpath("wav").glob("*")
-    test_speaker_dirs = [speaker_dir for speaker_dir in test_speaker_dirs if
-                    speaker_dir.name in keep_speaker_ids]
-    print("VoxCeleb1 test: found %d anglophone speakers on the disk, %d missing (this is normal)." %
-          (len(test_speaker_dirs), len(keep_speaker_ids) - len(test_speaker_dirs)))
-
-    # Preprocess all speakers
-    _preprocess_speaker_dirs(test_speaker_dirs, dataset_name, datasets_root, out_dir.joinpath("voxceleb-test"), skip_existing, logger)
+def preprocess_librispeechtest(datasets_root: Path, out_dir: Path, skip_existing=False):
+    # preprocess dev dataset
+    for dataset_name in librispeech_datasets["test"]["other"]:
+        # Initialize the preprocessing
+        dataset_root, logger = _init_preprocess_dataset(dataset_name, datasets_root, out_dir)
+        if not dataset_root:
+            return
+        
+        # Preprocess all speakers
+        speaker_dirs = list(dataset_root.glob("*"))
+        _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir.joinpath("test"), skip_existing, logger)
     
     
 if __name__ == "__main__":
-    datasets_root = Path("C:\\liuhaozhe\\voice-cloning\\data")
-    out_dir = Path("C:\\liuhaozhe\\voice-cloning\\data\\SV2TTS\\encoder")
-    preprocess_voxceleb1test(datasets_root, out_dir)
+    parser = argparse.ArgumentParser(
+        description="Preprocesses audio files from librispeech test other dataset, encodes them as mel spectrograms and "
+                    "writes them to the disk.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument("datasets_root", type=Path, help=\
+        "Path to the directory containing your LibriSpeech/TTS and VoxCeleb datasets.")
+    parser.add_argument("-o", "--out_dir", type=Path, default=argparse.SUPPRESS, help=\
+        "Path to the output directory that will contain the mel spectrograms. If left out, "
+        "defaults to <datasets_root>/SV2TTS/encoder/")
+    parser.add_argument("-s", "--skip_existing", action="store_true", help=\
+    "Whether to skip existing output files with the same name. Useful if this script was "
+    "interrupted.")
+
+    args = parser.parse_args()
+
+    if not hasattr(args, "out_dir"):
+        args.out_dir = args.datasets_root.joinpath("SV2TTS", "encoder")
+    assert args.datasets_root.exists()
+    args.out_dir.mkdir(exist_ok=True, parents=True)
+    args = vars(args)
+    preprocess_librispeechtest(**args)  
