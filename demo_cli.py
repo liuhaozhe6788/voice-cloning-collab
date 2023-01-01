@@ -135,7 +135,7 @@ if __name__ == '__main__':
     num_generated = 0
 
     nlp = spacy.load('en_core_web_sm')
-    weight = 1 # 声音美颜的用户语音权重
+    weight = arg_dict["weight"] # 声音美颜的用户语音权重
     amp = 1
 
     # while True:
