@@ -33,6 +33,8 @@ if __name__ == '__main__':
     "states and restart from scratch.")
     parser.add_argument("-m", "--models_dir", type=Path, default="saved_models",
                         help="Directory containing all saved models")
+    parser.add_argument("--weight", type=float, default=1,
+                        help="weight of input audio for voice filter")
     parser.add_argument("--griffin_lim",
                         action="store_true",
                         help="if True, use vocoder, else use griffin-lim")
@@ -197,7 +199,7 @@ if __name__ == '__main__':
             standard_fpath = "standard_audios/female_1.wav"
 
         if os.path.exists(standard_fpath):
-
+            
             standard_wav = Synthesizer.load_preprocess_wav(standard_fpath)
             preprocessed_standard_wav = encoder.preprocess_wav(standard_wav)
             print("Loaded standard audio file succesfully")
@@ -242,10 +244,10 @@ if __name__ == '__main__':
         breaks = [spec.shape[1] for spec in specs]
         spec = np.concatenate(specs, axis=1)
 
-        if not os.path.exists("tts_results"):
-            os.mkdir("tts_results")
-        save_attention(alignments.detach().cpu().numpy(), "tts_results/attention")
-        save_spectrogram(spec, "tts_results/mel")
+        if not os.path.exists("syn_results"):
+            os.mkdir("syn_results")
+        save_attention(alignments.detach().cpu().numpy(), "syn_results/attention")
+        save_spectrogram(spec, "syn_results/mel")
         print("Created the mel spectrogram")
 
 

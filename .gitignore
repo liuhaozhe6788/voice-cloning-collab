@@ -1,4 +1,5 @@
 saved_models/
+out_audios/
 launch.json
 *.pyc
 *.aux
@@ -16,7 +17,6 @@ launch.json
 *.bbl
 *.bcf
 *.toc
-*.wav
 *.sh
 *.pt
 *.whl
