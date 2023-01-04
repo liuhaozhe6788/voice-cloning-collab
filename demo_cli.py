@@ -15,12 +15,12 @@ from encoder import inference as encoder
 from encoder.params_data import *
 from encoder.params_model import model_embedding_size as speaker_embedding_size
 from synthesizer.inference import Synthesizer
-from utils.argutils import print_args
-from utils.default_models import ensure_default_models
+from synthesizer.utils.cleaners import english_cleaners
 from vocoder import inference as vocoder
 from vocoder.display import save_attention, save_spectrogram
-from synthesizer.utils.cleaners import english_cleaners
-from fixSpeed import *
+from utils.argutils import print_args
+from utils.default_models import ensure_default_models
+from speed_changer.fixSpeed import *
 
 
 if __name__ == '__main__':
