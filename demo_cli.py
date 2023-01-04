@@ -277,13 +277,15 @@ if __name__ == '__main__':
 
         # Trim excess silences to compensate for gaps in spectrograms (issue #53)
         # generated_wav = encoder.preprocess_wav(generated_wav)
-        wav = wav / np.abs(wav).max() * 1
+        wav = wav / np.abs(wav).max() * 4
 
         # Save it on the disk
         # filename = "demo_output_%02d.wav" % num_generated
         if not os.path.exists("out_audios"):
             os.mkdir("out_audios")
-        filename = f"out_audios/{speaker_name}_syn.wav"
+        
+        dir_path = os.path.dirname(os.path.realpath(__file__))  # current dir 
+        filename = os.path.join(dir_path, f"out_audios/{speaker_name}_syn.wav")
         # print(wav.dtype)
         sf.write(filename, wav.astype(np.float32), synthesizer.sample_rate)
         num_generated += 1
