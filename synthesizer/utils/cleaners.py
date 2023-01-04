@@ -64,7 +64,7 @@ def convert_to_ascii(text):
 
 def split_conj(text):
     wordtable=['at','on','in','during','for','before','after','since','until',
-        'between','under','over','above','below','by','beside','near','next to','outside','inside',
+        'between','under','above','below','by','beside','near','next to','outside','inside',
         'behind','with','through']
     a='\\b('+"|".join([' ' + i for i in wordtable])+')\\b'
     b=re.sub(a,r". \1",text)
