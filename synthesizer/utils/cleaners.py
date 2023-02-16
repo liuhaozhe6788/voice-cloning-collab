@@ -17,8 +17,10 @@ from synthesizer.utils.numbers import normalize_numbers
 # Regular expression matching whitespace:
 _whitespace_re = re.compile(r"\s+")
 
-# List of (regular expression, replacement) pairs for abbreviations:
-_abbreviations = [(re.compile("\\b%s\\." % x[0], re.IGNORECASE), x[1]) for x in [
+# Regular expression
+
+# List of (regular expression, replacement) pairs for abbreviations with ending '.':
+_abbreviations_dot_tail = [(re.compile(r"\b%s\." % x[0], re.IGNORECASE), x[1]) for x in [
     ("mrs", "misess"),
     ("mr", "mister"),
     ("dr", "doctor"),
@@ -39,12 +41,18 @@ _abbreviations = [(re.compile("\\b%s\\." % x[0], re.IGNORECASE), x[1]) for x in 
     ("ft", "fort"),
 ]]
 
+# List of (regular expression, replacement) pairs for special char abbreviation:
+_abbreviations_char = [(re.compile(r"%s" % x[0], re.IGNORECASE), x[1]) for x in [
+    ("(#\w+)", r'\1.'),  # split the hashtag word
+    ("@", " at ")]]
+
 
 def expand_abbreviations(text):
-    for regex, replacement in _abbreviations:
+    for regex, replacement in _abbreviations_dot_tail:
+        text = re.sub(regex, replacement, text)
+    for regex, replacement in _abbreviations_char:
         text = re.sub(regex, replacement, text)
     return text
-
 
 def expand_numbers(text):
     return normalize_numbers(text)
@@ -103,7 +111,7 @@ def english_cleaners(text):
     text = lowercase(text)
     text = expand_numbers(text)
     text = expand_abbreviations(text)
-    text = collapse_whitespace(text)
     text = add_breaks(text)
     text = split_conj(text) 
+    text = collapse_whitespace(text)
     return text
