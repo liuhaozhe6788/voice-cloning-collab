@@ -138,3 +138,4 @@ You can download the pretrained model from [this](https://drive.google.com/drive
 **2022.12.01：** merge the single sentences to input.<br>
 **2022.12.31：** added speaker embeddings dimension reduction visualzation results.<br>
 **2023.01.01：** did more text preprocessing and text cleaning for TTS text input.<br>
+**2023.02.17：** removed '#' char and convert '@' to "at".<br>
