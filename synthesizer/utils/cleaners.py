@@ -13,14 +13,74 @@ import re
 from unidecode import unidecode
 from synthesizer.utils.numbers import normalize_numbers
 
+# http://www.speech.cs.cmu.edu/cgi-bin/cmudict
+_alphabet2pronunciation = {
+    'A': 'eiiy',
+    'B': 'bee',
+    'b': 'bee',
+    'C': 'see',
+    'c': 'see',  
+    'D': 'dee',
+    'd': 'dee',   
+    'E': 'eee',
+    'e': 'eee',
+    'F': 'efph',
+    'f': 'efph', 
+    'G': 'jee',
+    'g': 'jee',        
+    'H': 'eiich',
+    'h': 'eiich',   
+    'J': 'jay',
+    'j': 'jay', 
+    'K': 'kay',
+    'k': 'kay',  
+    'L': 'el',
+    'l': 'el', 
+    'M': 'em',
+    'm': 'em', 
+    'N': 'en',
+    'n': 'en', 
+    'O': 'ow',
+    'o': 'ow',
+    'P': 'pee',
+    'p': 'pee',
+    'Q': 'kyuw',
+    'q': 'kyuw',    
+    'R': 'arr',
+    'r': 'arr',   
+    'S': 'es',
+    's': 'es', 
+    'T': 'tee',
+    't': 'tee', 
+    'U': 'you',
+    'u': 'you', 
+    'V': 'vee',
+    'v': 'vee', 
+    'W': 'dablyu',
+    'w': 'dablyu', 
+    'X': 'eks',
+    'x': 'eks', 
+    'Y': 'why',
+    'y': 'why', 
+    'Z': 'zee',
+    'z': 'zee'
+}
+
+_abbreviations_lowercase = ["lol", "pov", "tbh", "omg"]
 
 # Regular expression matching whitespace:
-_whitespace_re = re.compile(r"\s+")
+_whitespace_regex = re.compile(r"\s+")
 
 # Regular expression
+_abbreviations_lowercase_regex = re.compile(rf"\b({'|'.join(_abbreviations_lowercase)})\b")
+
+_abbreviations_capital_regex = re.compile(r"\b([A-Z]{1,22})\b")
 
 # List of (regular expression, replacement) pairs for abbreviations with ending '.':
-_abbreviations_dot_tail = [(re.compile(r"\b%s\." % x[0], re.IGNORECASE), x[1]) for x in [
+_abbreviations_alphabet_regex = [(re.compile(rf"\b{x[0]}\b"), x[1]) for x in _alphabet2pronunciation.items()]
+
+# List of (regular expression, replacement) pairs for abbreviations with ending '.':
+_abbreviations_dot_tail_regex = [(re.compile(r"\b%s\." % x[0], re.IGNORECASE), x[1]) for x in [
     ("mrs", "misess"),
     ("mr", "mister"),
     ("dr", "doctor"),
@@ -42,16 +102,35 @@ _abbreviations_dot_tail = [(re.compile(r"\b%s\." % x[0], re.IGNORECASE), x[1]) f
 ]]
 
 # List of (regular expression, replacement) pairs for special char abbreviation:
-_abbreviations_char = [(re.compile(r"%s" % x[0], re.IGNORECASE), x[1]) for x in [
-    ("(#\w+)", r'\1.'),  # split the hashtag word
+_abbreviations_special_char_regex = [(re.compile(r"%s" % x[0], re.IGNORECASE), x[1]) for x in [
+    ("#(\w+)", r'\1.'),  # split the hashtag word
     ("@", " at ")]]
 
+def replace_special_char(text):
+    # replace special characters
+    for regex, replacement in _abbreviations_special_char_regex:
+        text = re.sub(regex, replacement, text)
+    return text
+
+def letter2pronunciation(text):
+    # uppercase some abbreviations that may not be uppercase
+    text = re.sub(_abbreviations_lowercase_regex, lambda match: match.group(1).upper(), text)
+
+    # split abbreviations consisting of <=22 capital letters to individual letters
+    text = re.sub(_abbreviations_capital_regex, lambda match: ' '.join(match.group(1)), text)
+
+    # convert alphabets to corresponding pronunciation
+    for regex, replacement in _abbreviations_alphabet_regex:
+        text = re.sub(regex, replacement, text)
+
+    return text
 
 def expand_abbreviations(text):
-    for regex, replacement in _abbreviations_dot_tail:
+    # expand abbreviations ending with dot
+    for regex, replacement in _abbreviations_dot_tail_regex:
         text = re.sub(regex, replacement, text)
-    for regex, replacement in _abbreviations_char:
-        text = re.sub(regex, replacement, text)
+    # expand other abbreviations 
+
     return text
 
 def expand_numbers(text):
@@ -64,7 +143,7 @@ def lowercase(text):
 
 
 def collapse_whitespace(text):
-    return re.sub(_whitespace_re, " ", text)
+    return re.sub(_whitespace_regex, " ", text)
 
 
 def convert_to_ascii(text):
@@ -108,10 +187,12 @@ def transliteration_cleaners(text):
 
 def english_cleaners(text):
     """Pipeline for English text, including number and abbreviation expansion."""
+    text = replace_special_char(text)
+    text = letter2pronunciation(text)
     text = lowercase(text)
     text = expand_numbers(text)
     text = expand_abbreviations(text)
     text = add_breaks(text)
-    text = split_conj(text) 
+    # text = split_conj(text) 
     text = collapse_whitespace(text)
     return text
