@@ -226,8 +226,7 @@ if __name__ == '__main__':
         if args.seed is not None:
             torch.manual_seed(args.seed)
             synthesizer = Synthesizer(args.syn_model_fpath)
-        
-        import re
+
         # The synthesizer works in batch, so you need to put your data in a list or numpy array
         def split_text(text):
             text = english_cleaners(text)

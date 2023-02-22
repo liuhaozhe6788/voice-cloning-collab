@@ -74,7 +74,7 @@ _whitespace_regex = re.compile(r"\s+")
 # Regular expression
 _abbreviations_lowercase_regex = re.compile(rf"\b({'|'.join(_abbreviations_lowercase)})\b")
 
-_abbreviations_capital_regex = re.compile(r"\b([A-Z]{1,22})\b")
+_abbreviations_capital_regex = re.compile(r'\b([A-Z0-9]*[A-Z][A-Z0-9]*)\b')
 
 # List of (regular expression, replacement) pairs for abbreviations with ending '.':
 _abbreviations_alphabet_regex = [(re.compile(rf"\b{x[0]}\b"), x[1]) for x in _alphabet2pronunciation.items()]
@@ -104,7 +104,11 @@ _abbreviations_dot_tail_regex = [(re.compile(r"\b%s\." % x[0], re.IGNORECASE), x
 # List of (regular expression, replacement) pairs for special char abbreviation:
 _abbreviations_special_char_regex = [(re.compile(r"%s" % x[0], re.IGNORECASE), x[1]) for x in [
     ("#(\w+)", r'\1.'),  # split the hashtag word
-    ("@", " at ")]]
+    ("@", " at "),
+    ('~', ' to '),
+    ('&', ' and '),
+    ('%', ' percent '),
+    ('-', ' ')]]
 
 def replace_special_char(text):
     # replace special characters
@@ -116,7 +120,7 @@ def letter2pronunciation(text):
     # uppercase some abbreviations that may not be uppercase
     text = re.sub(_abbreviations_lowercase_regex, lambda match: match.group(1).upper(), text)
 
-    # split abbreviations consisting of <=22 capital letters to individual letters
+    # split abbreviations consisting of one or more capital letters and zero or more numbers to individual letters
     text = re.sub(_abbreviations_capital_regex, lambda match: ' '.join(match.group(1)), text)
 
     # convert alphabets to corresponding pronunciation
@@ -159,14 +163,9 @@ def split_conj(text):
     return b
 
 def add_breaks(text):
-    def convert(match_obj):
-        if match_obj.group() is not None:
-            return match_obj.group().replace(',', '')
-    text = re.sub(r"[0-9]+[\,][0-9]+", convert, text)
     text = text.replace('-', ' ')
     text = text.replace(',', '.')
     text = text.replace(';', '.')
-    text = text.replace('~', ' to ')
     return text
 
 
