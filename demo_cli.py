@@ -143,8 +143,9 @@ if __name__ == '__main__':
     # Get the reference audio filepath
     while True:
         # enter the number of reference audios
-        message1 = "Please enter the number of reference audios:\n"
-        num_of_input_audio = int(input(message1))
+        # message1 = "Please enter the number of reference audios:\n"
+        # num_of_input_audio = int(input(message1))
+        num_of_input_audio = 1
 
         for i in range(num_of_input_audio):
             # Computing the embedding
@@ -160,6 +161,8 @@ if __name__ == '__main__':
             message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
                        f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
             in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
+            # in_fpath = Path("/home/liuhaozhe/voice_cloning_project/collected_audios/openvoice_official/mellow.mp3")
+
             fpath_without_ext = os.path.splitext(str(in_fpath))[0]
             speaker_name = os.path.normpath(fpath_without_ext).split(os.sep)[-1]
 
@@ -215,7 +218,7 @@ if __name__ == '__main__':
         embed[embed < set_zero_thres]=0 # 噪声值置零
         embed = embed * amp
 
-        ## Generating the spectrogram
+        # Generating the spectrogram
         text = input("Write a sentence to be synthesized:\n")
         
 
@@ -223,8 +226,7 @@ if __name__ == '__main__':
         if args.seed is not None:
             torch.manual_seed(args.seed)
             synthesizer = Synthesizer(args.syn_model_fpath)
-        
-        import re
+
         # The synthesizer works in batch, so you need to put your data in a list or numpy array
         def split_text(text):
             text = english_cleaners(text)
