@@ -66,7 +66,7 @@ _alphabet2pronunciation = {
     'z': 'zee'
 }
 
-_abbreviations_lowercase = ["lol", "pov", "tbh", "omg"]
+_abbreviations_lowercase = ["lol", "pov", "tbh", "omg", "etc"]
 
 # Regular expression matching whitespace:
 _whitespace_regex = re.compile(r"\s+")
@@ -74,7 +74,9 @@ _whitespace_regex = re.compile(r"\s+")
 # Regular expression
 _abbreviations_lowercase_regex = re.compile(rf"\b({'|'.join(_abbreviations_lowercase)})\b")
 
-_abbreviations_capital_regex = re.compile(r'\b([A-Z0-9]*[A-Z][A-Z0-9]*)\b')
+_abbreviations_capital_regex = re.compile(r'\b([A-Z0-9]{1,3})\b')  
+
+_abbreviations_capital_plural_regex = re.compile(r'\b([A-Z0-9]{1,3}s)\b')  
 
 # List of (regular expression, replacement) pairs for abbreviations with ending '.':
 _abbreviations_alphabet_regex = [(re.compile(rf"\b{x[0]}\b"), x[1]) for x in _alphabet2pronunciation.items()]
@@ -108,6 +110,7 @@ _abbreviations_special_char_regex = [(re.compile(r"%s" % x[0], re.IGNORECASE), x
     ('~', ' to '),
     ('&', ' and '),
     ('%', ' percent '),
+    ('\+', ' plus '),
     ('-', ' ')]]
 
 def replace_special_char(text):
@@ -120,12 +123,25 @@ def letter2pronunciation(text):
     # uppercase some abbreviations that may not be uppercase
     text = re.sub(_abbreviations_lowercase_regex, lambda match: match.group(1).upper(), text)
 
-    # split abbreviations consisting of one or more capital letters and zero or more numbers to individual letters
-    text = re.sub(_abbreviations_capital_regex, lambda match: ' '.join(match.group(1)), text)
+    # split abbreviations consisting of one or more capital letters and zero or more numbers in single form to individual letters
+    text = re.sub(_abbreviations_capital_regex, lambda match: ' '.join(match.group(1)) + '.', text)
 
     # convert alphabets to corresponding pronunciation
     for regex, replacement in _abbreviations_alphabet_regex:
         text = re.sub(regex, replacement, text)
+
+    def convert(match):
+        char_list = [*match]
+        for idx in range(len(char_list)):
+            if idx < len(char_list) - 1:
+                char_list[idx] = _alphabet2pronunciation[char_list[idx]]
+            else:
+                char_list[idx - 1] += char_list[idx]
+                char_list[idx] = ''
+        return " ".join(char_list)
+
+    # split abbreviations consisting of one or more capital letters and zero or more numbers in plural form to individual letters
+    text = re.sub(_abbreviations_capital_plural_regex, lambda match: convert(match.group(1)), text)
 
     return text
 
@@ -134,7 +150,7 @@ def expand_abbreviations(text):
     for regex, replacement in _abbreviations_dot_tail_regex:
         text = re.sub(regex, replacement, text)
     # expand other abbreviations 
-
+    # TODO:
     return text
 
 def expand_numbers(text):
