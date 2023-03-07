@@ -120,27 +120,28 @@ def replace_special_char(text):
     return text
 
 def letter2pronunciation(text):
+
     # uppercase some abbreviations that may not be uppercase
     text = re.sub(_abbreviations_lowercase_regex, lambda match: match.group(1).upper(), text)
 
-    # split abbreviations consisting of one or more capital letters and zero or more numbers in single form to individual letters
-    text = re.sub(_abbreviations_capital_regex, lambda match: ' '.join(match.group(1)) + '.', text)
-
-    # convert alphabets to corresponding pronunciation
-    for regex, replacement in _abbreviations_alphabet_regex:
-        text = re.sub(regex, replacement, text)
-
     def convert(match):
         char_list = [*match]
-        for idx in range(len(char_list)):
-            if idx < len(char_list) - 1:
-                char_list[idx] = _alphabet2pronunciation[char_list[idx]]
-            else:
-                char_list[idx - 1] += char_list[idx]
-                char_list[idx] = ''
+        if char_list[-1] is 's':
+            for idx in range(len(char_list)):
+                if idx < len(char_list) - 1:
+                    char_list[idx] = _alphabet2pronunciation[char_list[idx]]
+                else:
+                    char_list[idx - 1] += char_list[idx]
+                    char_list[idx] = ''
+        else:
+            char_list = filter(lambda char: _alphabet2pronunciation[char], char_list)
         return " ".join(char_list)
+    # split abbreviations consisting of one or more capital letters and zero or more numbers in single form to individual letters
+    # and convert the letters to pronunciation
+    text = re.sub(_abbreviations_capital_regex, lambda match: convert(match.group(1)), text)
 
     # split abbreviations consisting of one or more capital letters and zero or more numbers in plural form to individual letters
+    # and convert the letters to pronunciation
     text = re.sub(_abbreviations_capital_plural_regex, lambda match: convert(match.group(1)), text)
 
     return text
