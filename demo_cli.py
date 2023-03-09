@@ -184,6 +184,7 @@ if __name__ == '__main__':
         # adjust the speed
         totDur_ori, nPause_ori, arDur_ori, nSyl_ori, arRate_ori = AudioAnalysis(path_ori, file_ori)
         DelFile(path_ori, '.TextGrid')
+        os.remove(fpath)
 
         preprocessed_wav = encoder.inference.preprocess_wav(wav)
 
