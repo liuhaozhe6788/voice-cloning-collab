@@ -16,7 +16,7 @@ def AudioAnalysis(dir, file):
     dir_path = os.path.dirname(os.path.realpath(__file__))  # current dir 
     source_run = os.path.join(dir_path, "myspsolution.praat")
     try:
-        objects = run_file(source_run, -20, 2, 0.20, "yes",sound, dir, 80, 400, 0.01, capture_output=True, return_variables = True)
+        objects = run_file(source_run, -20, 2, 0.27, "yes",sound, dir, 80, 400, 0.01, capture_output=True, return_variables = True)
         # 第四个参数为原praat脚本中的 Minimum_pause_duration（若有bug可适当调小）
         totDur = objects[2]['originaldur']
         nPause = objects[2]['npause']

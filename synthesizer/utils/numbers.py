@@ -48,19 +48,19 @@ def _expand_number(m):
     num = int(m.group(0))
     if num > 1000 and num < 3000:
         if num == 2000:
-            return "two thousand"
+            return " two thousand "
         elif num > 2000 and num < 2010:
-            return "two thousand " + _inflect.number_to_words(num % 100)
+            return " two thousand " + _inflect.number_to_words(num % 100) + " "
         elif num % 100 == 0:
-            return _inflect.number_to_words(num // 100) + " hundred"
+            return " " + _inflect.number_to_words(num // 100) + " hundred "
         else:
-            return _inflect.number_to_words(num, andword="", zero="oh", group=2).replace(", ", " ")
+            return " " + _inflect.number_to_words(num, andword="", zero="oh", group=2).replace(", ", " ") + " "
     else:
-        return _inflect.number_to_words(num, andword="")
+        return " " + _inflect.number_to_words(num, andword="") + " "
 
 
 def normalize_numbers(text):
-    text = re.sub(_comma_number_re, _remove_commas, text)
+    # text = re.sub(_comma_number_re, _remove_commas, text)
     text = re.sub(_pounds_re, r"\1 pounds", text)
     text = re.sub(_dollars_re, _expand_dollars, text)
     text = re.sub(_decimal_number_re, _expand_decimal_point, text)
