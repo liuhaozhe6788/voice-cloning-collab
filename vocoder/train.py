@@ -19,12 +19,19 @@ from utils.profiler import Profiler
 
 
 def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_truth: bool, save_every: int,
-          backup_every: int, force_restart: bool):
+          backup_every: int, force_restart: bool, use_tb: bool):
+    if use_tb:
+        print("Use Tensorboard")
+        import tensorflow as tf
+        import datetime
+        # Hide GPU from visible devices
+        log_dir = f"log/vocoder/tensorboard/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        train_summary_writer = tf.summary.create_file_writer(log_dir)
     # Check to make sure the hop length is correctly factorised
-    train_syn_dir = syn_dir.joinpath("train-clean")
-    train_voc_dir = voc_dir.joinpath("train-clean")    
-    dev_syn_dir = syn_dir.joinpath("dev-clean")
-    dev_voc_dir = voc_dir.joinpath("dev-clean")
+    train_syn_dir = syn_dir.joinpath("train")
+    train_voc_dir = voc_dir.joinpath("train")    
+    dev_syn_dir = syn_dir.joinpath("dev")
+    dev_voc_dir = voc_dir.joinpath("dev")
     assert np.cumprod(hp.voc_upsample_factors)[-1] == hp.hop_length
 
     # Instantiate the model
@@ -58,23 +65,23 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
     model_dir = models_dir / run_id
     model_dir.mkdir(exist_ok=True)
     weights_fpath = model_dir / "vocoder.pt"
-    train_loss_file_path = "vocoder_loss/vocoder_train_loss.npy"
-    dev_loss_file_path = "vocoder_loss/vocoder_dev_loss.npy"
+    # train_loss_file_path = "vocoder_loss/vocoder_train_loss.npy"
+    # dev_loss_file_path = "vocoder_loss/vocoder_dev_loss.npy"
 
-    if not exists("vocoder_loss"):
-        import os
-        os.mkdir("vocoder_loss")
+    # if not exists("vocoder_loss"):
+    #     import os
+    #     os.mkdir("vocoder_loss")
     if force_restart or not weights_fpath.exists():
         print("\nStarting the training of WaveRNN from scratch\n")
         model.save(weights_fpath, optimizer)
-        losses = []
-        dev_losses = []
+        # losses = []
+        # dev_losses = []
     else:
         print("\nLoading weights at %s" % weights_fpath)
         model.load(weights_fpath, optimizer)
         print("WaveRNN weights loaded from step %d" % model.step)
-        losses = list(np.load(train_loss_file_path)) if exists(train_loss_file_path) else []
-        dev_losses = list(np.load(dev_loss_file_path)) if exists(dev_loss_file_path) else []
+        # losses = list(np.load(train_loss_file_path)) if exists(train_loss_file_path) else []
+        # dev_losses = list(np.load(dev_loss_file_path)) if exists(dev_loss_file_path) else []
 
     # Initialize the dataset
     train_metadata_fpath = train_syn_dir.joinpath("train.txt") if ground_truth else \
@@ -96,8 +103,8 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
     simple_table([('Batch size', hp.voc_batch_size),
                   ('LR', hp.voc_lr),
                   ('Sequence Len', hp.voc_seq_len)])
-    best_loss_file_path = "vocoder_loss/best_loss.npy"
-    best_loss = np.load(best_loss_file_path)[0] if exists(best_loss_file_path) else 1000
+    # best_loss_file_path = "vocoder_loss/best_loss.npy"
+    # best_loss = np.load(best_loss_file_path)[0] if exists(best_loss_file_path) else 1000
 
     # profiler = Profiler(summarize_every=10, disabled=False)
     for epoch in range(1, 350):
@@ -139,6 +146,10 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
                 f"{speed:.4f}steps/s | Step: {k}k | "
             stream(msg)
 
+            if use_tb:
+                with train_summary_writer.as_default():
+                    tf.summary.scalar('train_loss', train_loss_window.average, step=step)
+
             if backup_every != 0 and i % backup_every == 0 :
                 model.checkpoint(model_dir, optimizer)
 
@@ -148,14 +159,18 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
                     f"Train Loss: {train_loss_window.average:.4f} | Dev Loss: {dev_loss:.4f} | " \
                     f"{speed:.4f}steps/s | Step: {k}k | "
                 stream(msg)
-                losses.append(train_loss_window.average)
-                np.save(train_loss_file_path, np.array(losses, dtype=float))
-                dev_losses.append(dev_loss)
-                np.save(dev_loss_file_path, np.array(dev_losses, dtype=float))
-                if dev_loss < best_loss :
-                    best_loss = dev_loss
-                    np.save(best_loss_file_path, np.array([best_loss]))
-                    model.save(weights_fpath, optimizer)
+
+                if use_tb:
+                    with train_summary_writer.as_default():
+                        tf.summary.scalar('val_loss', dev_loss, step=step)
+                # losses.append(train_loss_window.average)
+                # np.save(train_loss_file_path, np.array(losses, dtype=float))
+                # dev_losses.append(dev_loss)
+                # np.save(dev_loss_file_path, np.array(dev_losses, dtype=float))
+                # if dev_loss < best_loss :
+                    # best_loss = dev_loss
+                    # np.save(best_loss_file_path, np.array([best_loss]))
+                model.save(weights_fpath, optimizer)
 
             # profiler.tick("Extra saving")
 

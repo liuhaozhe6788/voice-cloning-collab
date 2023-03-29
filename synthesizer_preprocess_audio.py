@@ -1,4 +1,4 @@
-from synthesizer.preprocess import preprocess_dataset
+from synthesizer.preprocess import preprocess_librispeech, preprocess_vctk
 from synthesizer.hparams import hparams
 from utils.argutils import print_args
 from pathlib import Path
@@ -24,12 +24,9 @@ if __name__ == "__main__":
         "interrupted.")
     parser.add_argument("--hparams", type=str, default="", help=\
         "Hyperparameter overrides as a comma-separated list of name-value pairs")
-    parser.add_argument("--no_alignments", action="store_true", help=\
-        "Use this option when dataset does not include alignments\
-        (these are used to split long audio files into sub-utterances.)")
-    parser.add_argument("--datasets_name", type=str, default="LibriSpeech", help=\
+    parser.add_argument("--datasets_names", type=list, default=["LibriSpeech","VCTK"], help=\
         "Name of the dataset directory to process.")
-    parser.add_argument("--subfolders", type=str, default="train-clean-100,train-clean-360,dev-clean", help=\
+    parser.add_argument("--all_subfolders", type=list, default=["train-clean-100,train-clean-360,dev-clean", "wav48_silence_trimmed"], help=\
         "Comma-separated list of subfolders to process inside your dataset directory")
     args = parser.parse_args()
 
@@ -44,4 +41,15 @@ if __name__ == "__main__":
     # Preprocess the dataset
     print_args(args, parser)
     args.hparams = hparams.parse(args.hparams)
-    preprocess_dataset(**vars(args))
+    preprocess_func = {
+        "LibriSpeech": preprocess_librispeech,
+        "VCTK": preprocess_vctk,
+    }
+    args = vars(args)
+    for i in range(len(args["datasets_names"])):
+        dataset = args["datasets_names"][i]
+        subfolders = args["all_subfolders"][i]
+        print("Preprocessing %s" % dataset)
+
+        preprocess_func[dataset](datasets_root=args["datasets_root"], out_dir=args["out_dir"], n_processes=args["n_processes"], skip_existing=args["skip_existing"], hparams=args["hparams"],
+                       datasets_name=dataset, subfolders=subfolders)

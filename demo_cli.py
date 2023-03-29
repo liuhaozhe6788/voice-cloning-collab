@@ -157,10 +157,9 @@ if __name__ == '__main__':
             # - If the wav is already loaded:
 
             # get duration info from input audio
-            # message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
-            #            f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
-            # in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
-            in_fpath = Path("/home/liuhaozhe/voice_cloning_project/collected_audios/openvoice_official/mellow.mp3")
+            message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
+                       f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
+            in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
 
             fpath_without_ext = os.path.splitext(str(in_fpath))[0]
             speaker_name = os.path.normpath(fpath_without_ext).split(os.sep)[-1]

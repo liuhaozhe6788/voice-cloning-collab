@@ -16,10 +16,10 @@ from synthesizer.utils.symbols import symbols
 
 def run_synthesis(in_dir: Path, out_dir: Path, syn_model_fpath: Path, hparams):
     # This generates ground truth-aligned mels for vocoder training
-    train_in_dir = in_dir.joinpath("train-clean")
-    train_out_dir = out_dir.joinpath("train-clean")
-    dev_in_dir = in_dir.joinpath("dev-clean")
-    dev_out_dir = out_dir.joinpath("dev-clean")
+    train_in_dir = in_dir.joinpath("train")
+    train_out_dir = out_dir.joinpath("train")
+    dev_in_dir = in_dir.joinpath("dev")
+    dev_out_dir = out_dir.joinpath("dev")
     train_synth_dir = train_out_dir / "mels_gta"
     train_synth_dir.mkdir(exist_ok=True, parents=True)
     dev_synth_dir = dev_out_dir / "mels_gta"

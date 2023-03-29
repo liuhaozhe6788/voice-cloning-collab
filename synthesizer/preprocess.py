@@ -1,18 +1,20 @@
 from multiprocessing.pool import Pool
 from synthesizer import audio
 from functools import partial
-from itertools import chain
+from itertools import chain, groupby
 from encoder import inference as encoder
 from pathlib import Path
 from utils import logmmse
 from tqdm import tqdm
 import numpy as np
 import librosa
+import random
 
 
-def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int, skip_existing: bool, hparams,
-                       no_alignments: bool, datasets_name: str, subfolders: str):
-    # Gather the input directories
+def preprocess_librispeech(datasets_root: Path, out_dir: Path, n_processes: int, skip_existing: bool, hparams,
+                       datasets_name: str, subfolders: str, no_alignments=False):
+    
+    # Gather the input directories of LibriSpeeech
     dataset_root = datasets_root.joinpath(datasets_name)
     input_dirs = [dataset_root.joinpath(subfolder.strip()) for subfolder in subfolders.split(",")]
     print("\n    ".join(map(str, ["Using data from:"] + input_dirs)))
@@ -22,7 +24,7 @@ def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int, ski
     dev_input_dirs = input_dirs[-1: ]
 
     # Create the output directories for each output file type
-    train_out_dir = out_dir.joinpath("train-clean")
+    train_out_dir = out_dir.joinpath("train")
     train_out_dir.mkdir(exist_ok=True)
     train_out_dir.joinpath("mels").mkdir(exist_ok=True)
     train_out_dir.joinpath("audio").mkdir(exist_ok=True)
@@ -31,7 +33,7 @@ def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int, ski
     train_metadata_fpath = train_out_dir.joinpath("train.txt")
     train_metadata_file = train_metadata_fpath.open("a" if skip_existing else "w", encoding="utf-8")
     
-    dev_out_dir = out_dir.joinpath("dev-clean")
+    dev_out_dir = out_dir.joinpath("dev")
     dev_out_dir.mkdir(exist_ok=True)
     dev_out_dir.joinpath("mels").mkdir(exist_ok=True)
     dev_out_dir.joinpath("audio").mkdir(exist_ok=True)
@@ -85,6 +87,49 @@ def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int, ski
     print("Max input length (text chars): %d" % max(len(m[5]) for m in metadata))
     print("Max mel frames length: %d" % max(int(m[4]) for m in metadata))
     print("Max audio timesteps length: %d" % max(int(m[3]) for m in metadata))
+
+
+def preprocess_vctk(datasets_root: Path, out_dir: Path, n_processes: int, skip_existing: bool, hparams,
+                       datasets_name: str, subfolders: str, no_alignments=True):
+    # TODO:Gather the input directories of VCTK
+    dataset_root = datasets_root.joinpath(datasets_name)
+    input_dir = dataset_root.joinpath(subfolders)
+    print("Using data from:" + str(input_dir))
+    assert input_dir.exists()
+    paths = [*input_dir.rglob("*.flac")]
+
+    # train dev audio data split
+    train_input_fpaths = []
+    dev_input_fpaths = []
+
+    pairs = sorted([(p.parts[-2].split('_')[0], p) for p in paths])
+    del paths
+
+    for _, group in groupby(pairs, lambda pair: pair[0]):
+        paths = sorted([p for _, p in group if "mic1.flac" in str(p)])  # only get mic1 flac file
+        random.seed(0)
+        random.shuffle(paths)
+        n = round(len(paths) * 0.9)
+        train_input_fpaths.extend(paths[:n])  
+        # dev dataset has the same speakers as train dataset      
+        dev_input_fpaths.extend(paths[n:]) 
+
+    # Create the output directories for each output file type
+    train_out_dir = out_dir.joinpath("train")
+    train_out_dir.mkdir(exist_ok=True)
+    train_out_dir.joinpath("mels").mkdir(exist_ok=True)
+    train_out_dir.joinpath("audio").mkdir(exist_ok=True)
+    
+    dev_out_dir = out_dir.joinpath("dev")
+    dev_out_dir.mkdir(exist_ok=True)
+    dev_out_dir.joinpath("mels").mkdir(exist_ok=True)
+    dev_out_dir.joinpath("audio").mkdir(exist_ok=True)
+
+    # Preprocess the train dataset
+    preprocess_data(train_input_fpaths, mode="train", out_dir=train_out_dir, skip_existing=skip_existing, hparams=hparams, no_alignments=no_alignments)
+    
+    # Preprocess the dev dataset
+    preprocess_data(dev_input_fpaths, mode="dev", out_dir=dev_out_dir, skip_existing=skip_existing, hparams=hparams, no_alignments=no_alignments)
 
 
 def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams, no_alignments: bool):
@@ -144,6 +189,51 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams,
                                                       skip_existing, hparams))
 
     return [m for m in metadata if m is not None]
+
+
+def preprocess_data(wav_fpaths, mode, out_dir: Path, skip_existing: bool, hparams, no_alignments: bool):
+    assert mode in ["train", "dev"]
+    # Create a metadata file
+    metadata_fpath = out_dir.joinpath(f"{mode}.txt")
+    metadata_file = metadata_fpath.open("a" if skip_existing else "w", encoding="utf-8")
+    if no_alignments:
+        for wav_fpath in tqdm(wav_fpaths, desc=mode):
+            # Load the audio waveform
+            wav, _ = librosa.load(str(wav_fpath), hparams.sample_rate)
+            if hparams.rescale:
+                wav = wav / np.abs(wav).max() * hparams.rescaling_max
+
+            # Get the corresponding text
+            # Check for .txt (for compatibility with other datasets)
+            base_name = "_".join(wav_fpath.name.split(".")[0].split("_")[: -1]) + ".txt"
+            text_fpath = wav_fpath.with_name(base_name)
+
+            if not text_fpath.exists():
+                continue
+            with text_fpath.open("r") as text_file:
+                text = "".join([line for line in text_file])
+                text = text.replace("\"", "")
+                text = text.strip()
+
+            # Process the utterance
+            metadata = process_utterance(wav, text, out_dir, str(wav_fpath.with_suffix("").name), skip_existing, hparams, trim_silence=False)
+
+            if metadata is not None:
+                metadata_file.write("|".join(str(x) for x in metadata) + "\n")
+    metadata_file.close()
+
+    # Verify the contents of the metadata file
+    with metadata_fpath.open("r", encoding="utf-8") as metadata_file:
+        metadata = [line.split("|") for line in metadata_file]
+    mel_frames = sum([int(m[4]) for m in metadata])
+    timesteps = sum([int(m[3]) for m in metadata])
+    sample_rate = hparams.sample_rate
+    hours = (timesteps / sample_rate) / 3600
+    print(f"The {mode} dataset consists of %d utterances, %d mel frames, %d audio timesteps (%.2f hours)." %
+          (len(metadata), mel_frames, timesteps, hours))
+    print("Max input length (text chars): %d" % max(len(m[5]) for m in metadata))
+    print("Max mel frames length: %d" % max(int(m[4]) for m in metadata))
+    print("Max audio timesteps length: %d" % max(int(m[3]) for m in metadata))
 
 
 def split_on_silences(wav_fpath, words, end_times, hparams):
@@ -219,7 +309,7 @@ def split_on_silences(wav_fpath, words, end_times, hparams):
 
 
 def process_utterance(wav: np.ndarray, text: str, out_dir: Path, basename: str,
-                      skip_existing: bool, hparams):
+                      skip_existing: bool, hparams, trim_silence=True):
     ## FOR REFERENCE:
     # For you not to lose your head if you ever wish to change things here or implement your own
     # synthesizer.
@@ -240,8 +330,7 @@ def process_utterance(wav: np.ndarray, text: str, out_dir: Path, basename: str,
         return None
 
     # Trim silence
-    if hparams.trim_silence:
-        wav = encoder.preprocess_wav(wav, normalize=False, trim_silence=True)
+    wav = encoder.preprocess_wav(wav, normalize=False, trim_silence=trim_silence)
 
     # Skip utterances that are too short
     if len(wav) < hparams.utterance_min_duration * hparams.sample_rate:
@@ -277,10 +366,10 @@ def embed_utterance(fpaths, encoder_model_fpath):
 
 def create_embeddings(synthesizer_root: Path, encoder_model_fpath: Path, n_processes: int):
     # create train embeddings
-    train_wav_dir = synthesizer_root.joinpath("train-clean/audio")
-    train_metadata_fpath = synthesizer_root.joinpath("train-clean/train.txt")
+    train_wav_dir = synthesizer_root.joinpath("train/audio")
+    train_metadata_fpath = synthesizer_root.joinpath("train/train.txt")
     assert train_wav_dir.exists() and train_metadata_fpath.exists()
-    train_embed_dir = synthesizer_root.joinpath("train-clean/embeds")
+    train_embed_dir = synthesizer_root.joinpath("train/embeds")
     train_embed_dir.mkdir(exist_ok=True)
 
     # Gather the input wave filepath and the target output embed filepath
@@ -295,10 +384,10 @@ def create_embeddings(synthesizer_root: Path, encoder_model_fpath: Path, n_proce
     list(tqdm(job, "Embedding", len(fpaths), unit="utterances"))
 
     # create dev embeddings
-    dev_wav_dir = synthesizer_root.joinpath("dev-clean/audio")
-    dev_metadata_fpath = synthesizer_root.joinpath("dev-clean/dev.txt")
+    dev_wav_dir = synthesizer_root.joinpath("dev/audio")
+    dev_metadata_fpath = synthesizer_root.joinpath("dev/dev.txt")
     assert dev_wav_dir.exists() and dev_metadata_fpath.exists()
-    dev_embed_dir = synthesizer_root.joinpath("dev-clean/embeds")
+    dev_embed_dir = synthesizer_root.joinpath("dev/embeds")
     dev_embed_dir.mkdir(exist_ok=True)
 
     # Gather the input wave filepath and the target output embed filepath

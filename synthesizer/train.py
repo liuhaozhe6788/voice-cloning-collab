@@ -16,7 +16,6 @@ from synthesizer.utils.plot import plot_spectrogram
 from synthesizer.utils.symbols import symbols
 from synthesizer.utils.text import sequence_to_text
 from vocoder.display import *
-from utils.profiler import Profiler
 
 
 def np_now(x: torch.Tensor): return x.detach().cpu().numpy()
@@ -32,8 +31,15 @@ def sync(device: torch.device):
         torch.cuda.synchronize(device)
 
 
-def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup_every: int, force_restart: bool,
+def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup_every: int, force_restart: bool, use_tb: bool, 
           hparams):
+    if use_tb:
+        print("Use Tensorboard")
+        import tensorflow as tf
+        import datetime
+        # Hide GPU from visible devices
+        log_dir = f"log/synthesizer/tensorboard/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        train_summary_writer = tf.summary.create_file_writer(log_dir)
     models_dir.mkdir(exist_ok=True)
 
     model_dir = models_dir.joinpath(run_id)
@@ -48,8 +54,8 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
     meta_folder.mkdir(exist_ok=True)
 
     weights_fpath = model_dir / f"synthesizer.pt"
-    train_metadata_fpath = syn_dir.joinpath("train-clean/train.txt")
-    dev_metadata_fpath = syn_dir.joinpath("dev-clean/dev.txt")
+    train_metadata_fpath = syn_dir.joinpath("train/train.txt")
+    dev_metadata_fpath = syn_dir.joinpath("dev/dev.txt")
 
     print("Checkpoint path: {}".format(weights_fpath))
     print("Loading training data from: {}".format(train_metadata_fpath))
@@ -91,11 +97,11 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
     # Initialize the optimizer
     optimizer = optim.Adam(model.parameters())
     
-    train_loss_file_path = "synthesizer_loss/synthesizer_train_loss.npy"
-    dev_loss_file_path = "synthesizer_loss/synthesizer_dev_loss.npy"
-    if not exists("synthesizer_loss"):
-        import os
-        os.mkdir("synthesizer_loss")
+    # train_loss_file_path = "synthesizer_loss/synthesizer_train_loss.npy"
+    # dev_loss_file_path = "synthesizer_loss/synthesizer_dev_loss.npy"
+    # if not exists("synthesizer_loss"):
+    #     import os
+    #     os.mkdir("synthesizer_loss")
     
     # Load the weights
     if force_restart or not weights_fpath.exists():
@@ -111,26 +117,26 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
 
                 f.write("{}\n".format(symbol))
                 
-        losses = []
-        dev_losses = []
+        # losses = []
+        # dev_losses = []
 
     else:
         print("\nLoading weights at %s" % weights_fpath)
         model.load(weights_fpath, optimizer)
         print("Tacotron weights loaded from step %d" % model.step)
-        losses = list(np.load(train_loss_file_path)) if exists(train_loss_file_path) else []
-        dev_losses = list(np.load(dev_loss_file_path)) if exists(dev_loss_file_path) else []
+        # losses = list(np.load(train_loss_file_path)) if exists(train_loss_file_path) else []
+        # dev_losses = list(np.load(dev_loss_file_path)) if exists(dev_loss_file_path) else []
         
     # Initialize the dataset
-    train_mel_dir = syn_dir.joinpath("train-clean/mels")
-    train_embed_dir = syn_dir.joinpath("train-clean/embeds")
-    dev_mel_dir = syn_dir.joinpath("dev-clean/mels")
-    dev_embed_dir = syn_dir.joinpath("dev-clean/embeds")
+    train_mel_dir = syn_dir.joinpath("train/mels")
+    train_embed_dir = syn_dir.joinpath("train/embeds")
+    dev_mel_dir = syn_dir.joinpath("dev/mels")
+    dev_embed_dir = syn_dir.joinpath("dev/embeds")
     train_dataset = SynthesizerDataset(train_metadata_fpath, train_mel_dir, train_embed_dir, hparams)
     dev_dataset = SynthesizerDataset(dev_metadata_fpath, dev_mel_dir, dev_embed_dir, hparams)
 
-    best_loss_file_path = "synthesizer_loss/best_loss.npy"
-    best_loss = np.load(best_loss_file_path)[0] if exists(best_loss_file_path) else 1000
+    # best_loss_file_path = "synthesizer_loss/best_loss.npy"
+    # best_loss = np.load(best_loss_file_path)[0] if exists(best_loss_file_path) else 1000
 
     # profiler = Profiler(summarize_every=10, disabled=False)
     for i, session in enumerate(hparams.tts_schedule):
@@ -230,28 +236,36 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
                       f"{1./time_window.average:#.2} steps/s | Step: {k}k | "
                 stream(msg)
 
+                if use_tb:
+                    with train_summary_writer.as_default():
+                        tf.summary.scalar('train_loss', loss_window.average, step=step)
+                        tf.summary.scalar('learning_rate', lr, step=step)
+
                 # Backup or save model as appropriate
                 # if backup_every != 0 and step % backup_every == 0 :
                 #     backup_fpath = weights_fpath.parent / f"synthesizer_{k:06d}.pt"
                 #     model.save(backup_fpath, optimizer)
-
+                torch.cuda.empty_cache()
                 if save_every != 0 and i % save_every == 0:
                     dev_loss = validate(dev_dataset, model, collate_fn)
                     msg = f"\n| Epoch: {epoch}/{epochs} ({i}/{steps_per_epoch}) | Train Loss: {loss_window.average:#.4} | " \
                           f"Dev Loss: {dev_loss:#.4} | {1./time_window.average:#.2} steps/s | Step: {k}k | "
                     print(msg)
-                    losses.append(loss_window.average)
-                    np.save(train_loss_file_path, np.array(losses, dtype=float))
 
-                    dev_losses.append(dev_loss)
-                    np.save(dev_loss_file_path, np.array(dev_losses, dtype=float))
+                    if use_tb:
+                        with train_summary_writer.as_default():
+                            tf.summary.scalar('val_loss', dev_loss, step=step)
+                    # losses.append(loss_window.average)
+                    # np.save(train_loss_file_path, np.array(losses, dtype=float))
 
-                    if dev_loss < best_loss:
-                        # Must save latest optimizer state to ensure that resuming training
-                        # doesn't produce artifacts
-                        best_loss = dev_loss
-                        np.save(best_loss_file_path, np.array([best_loss]))
-                        model.save(weights_fpath, optimizer)
+                    # dev_losses.append(dev_loss)
+                    # np.save(dev_loss_file_path, np.array(dev_losses, dtype=float))
+
+                    # Must save latest optimizer state to ensure that resuming training
+                    # doesn't produce artifacts
+                    # best_loss = dev_loss
+                    # np.save(best_loss_file_path, np.array([best_loss]))
+                    model.save(weights_fpath, optimizer)
 
                 # Evaluate model to generate dev samples
                 # epoch_eval = hparams.tts_eval_interval == -1 and i == steps_per_epoch  # If epoch is done

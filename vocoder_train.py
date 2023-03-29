@@ -38,6 +38,8 @@ if __name__ == "__main__":
         "model.")
     parser.add_argument("-f", "--force_restart", action="store_true", help= \
         "Do not load any saved model and restart from scratch.")
+    parser.add_argument("--use_tb", action="store_true", help= \
+        "Use Tensorboard support")
     args = parser.parse_args()
 
     # Process the arguments

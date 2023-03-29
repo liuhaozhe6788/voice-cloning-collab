@@ -70,7 +70,7 @@ python synthesizer_train.py <model_id> <datasets_root>/SV2TTS/synthesizer
 ```
 if you want to monitor the training progress, run
 ```
-python update_plot.py syn
+tensorboard --logdir log/synthesizer --host localhost --port 8088
 ```
 ### Vocoder
 
@@ -89,7 +89,7 @@ python vocoder_train.py <model_id> <datasets_root>
 ```
 if you want to monitor the training progress, run
 ```
-python update_plot.py voc
+tensorboard --logdir log/vocoder --host localhost --port 8080
 ```
 **Note:**
 

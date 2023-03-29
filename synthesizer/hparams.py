@@ -49,12 +49,12 @@ hparams = HParams(
                                                     # frame that has all values < -3.4
 
         ### Tacotron Training
-        tts_schedule = [(2,  1e-3,  20_000,  12),   # Progressive training schedule
-                        (2,  5e-4,  40_000,  12),   # (r, lr, step, batch_size)
-                        (2,  2e-4,  80_000,  12),   #
-                        (2,  1e-4, 160_000,  12),   # r = reduction factor (# of mel frames
-                        (2,  3e-5, 320_000,  12),   #     synthesized for each decoder iteration)
-                        (2,  1e-5, 640_000,  12)],  # lr = learning rate
+        tts_schedule = [(2,  1e-3,  40_000,  12),   # Progressive training schedule
+                        (2,  5e-4,  80_000,  12),   # (r, lr, step, batch_size)
+                        (2,  2e-4,  160_000,  12),   #
+                        (2,  1e-4, 320_000,  12),   # r = reduction factor (# of mel frames
+                        (2,  3e-5, 1280_000,  12),   #     synthesized for each decoder iteration)
+                        (2,  1e-5, 2560_000,  12)],  # lr = learning rate
 
         tts_clip_grad_norm = 1.0,                   # clips the gradient norm to prevent explosion - set to None if not needed
         tts_eval_interval = 100,                    # Number of steps between model evaluation (sample generation)
@@ -80,12 +80,11 @@ hparams = HParams(
         use_lws = False,                            # "Fast spectrogram phase recovery using local weighted sums"
         symmetric_mels = True,                      # Sets mel range to [-max_abs_value, max_abs_value] if True,
                                                     #               and [0, max_abs_value] if False
-        trim_silence = True,                        # Use with sample_rate of 16000 for best results
 
         ### SV2TTS
         speaker_embedding_size = 256,               # Dimension for the speaker embedding
         silence_min_duration_split = 0.4,           # Duration in seconds of a silence for an utterance to be split
-        utterance_min_duration = 1.6,               # Duration in seconds below which utterances are discarded
+        utterance_min_duration = 1,                 # Duration in seconds below which utterances are discarded
         )
 
 def hparams_debug_string():
