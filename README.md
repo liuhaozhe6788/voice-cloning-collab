@@ -57,6 +57,7 @@ python encoder_train.py <model_id> <datasets_root>/SV2TTS/encoder
 **Download dataset：** 
 1. [LibriSpeech](https://www.openslr.org/12): train-clean-100 and train-clean-360 for training, dev-clean for validation (extract as <datasets_root>/LibriSpeech/<dataset_name>)
 2. [LibriSpeech alignments](https://drive.google.com/file/d/1WYfgr31T-PPwMcxuAq09XZfHQO5Mw8fE/view?usp=sharing): merge the directory structure with the LibriSpeech datasets you have downloaded (do not take the alignments from the datasets you haven't downloaded else the scripts will think you have them)
+3. [VCTK](https://datashare.ed.ac.uk/handle/10283/3443): used for training and validation
 
 **Synthesizer preprocessing:** 
 ```
