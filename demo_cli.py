@@ -157,8 +157,8 @@ if __name__ == '__main__':
             # - If the wav is already loaded:
 
             # get duration info from input audio
-            # message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
-            #            f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
+            message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
+                       f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
             in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
             # in_fpath = Path("/home/liuhaozhe/voice_cloning_project/collected_audios/celeb_audios/trimmed/Madonna_trim.wav")
 
