@@ -69,13 +69,13 @@ class Synthesizer:
 
     def synthesize_spectrograms(self, texts: List[str],
                                 embeddings: Union[np.ndarray, List[np.ndarray]],
-                                return_alignments=False):
+                                require_visualization=False):
         """
         Synthesizes mel spectrograms from texts and speaker embeddings.
 
         :param texts: a list of N text prompts to be synthesized
         :param embeddings: a numpy array or list of speaker embeddings of shape (N, 256)
-        :param return_alignments: if True, a matrix representing the alignments between the
+        :param require_visualization: if True, a matrix representing the alignments between the
         characters
         and each decoder output step will be returned for each spectrogram
         :return: a list of N melspectrograms as numpy arrays of shape (80, Mi), where Mi is the
@@ -115,17 +115,26 @@ class Synthesizer:
             speaker_embeddings = torch.tensor(speaker_embeds).float().to(self.device)
 
             # Inference
-            _, mels, alignments = self._model.generate(chars, speaker_embeddings)
+            _, mels, alignments, stop_tokens = self._model.generate(chars, speaker_embeddings)
             mels = mels.detach().cpu().numpy()
+            alignments = alignments.detach().cpu().numpy()
+            stop_tokens = stop_tokens.detach().cpu().numpy()
             for m in mels:
                 # Trim silence from end of each spectrogram
                 while np.max(m[:, -1]) < hparams.tts_stop_threshold:
+                    if m.shape[-1] == 1:
+                        break
                     m = m[:, :-1]
+                # Trim silence from start of each spectrogram
+                while np.max(m[:, 0]) < hparams.tts_start_threshold:
+                    if m.shape[-1] == 1:
+                        break
+                    m = m[:, 1:]
                 specs.append(m)
 
         if self.verbose:
             print("\n\nDone.\n")
-        return (specs, alignments) if return_alignments else specs
+        return (specs, alignments, stop_tokens) if require_visualization else specs
 
     @staticmethod
     def load_preprocess_wav(fpath):

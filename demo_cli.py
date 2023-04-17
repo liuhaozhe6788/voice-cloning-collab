@@ -1,25 +1,10 @@
 import argparse
 from ctypes import alignment
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from pathlib import Path
 import spacy
-import matplotlib.pyplot as plt
-
-import librosa
-import numpy as np
-import soundfile as sf
-import torch
-import noisereduce as nr  
-
-import encoder.inference
-import encoder.params_data 
-from synthesizer.inference import Synthesizer
-from synthesizer.utils.cleaners import add_breaks, english_cleaners
-from vocoder import inference as vocoder
-from vocoder.display import save_attention, save_spectrogram
-from utils.argutils import print_args
-from utils.default_models import ensure_default_models
-from speed_changer.fixSpeed import *
+import time
 
 
 if __name__ == '__main__':
@@ -32,7 +17,7 @@ if __name__ == '__main__':
     "states and restart from scratch.")
     parser.add_argument("-m", "--models_dir", type=Path, default="saved_models",
                         help="Directory containing all saved models")
-    parser.add_argument("--weight", type=float, default=1,
+    parser.add_argument("--weight", type=float, default=0.7,
                         help="weight of input audio for voice filter")
     parser.add_argument("--griffin_lim",
                         action="store_true",
@@ -45,7 +30,7 @@ if __name__ == '__main__':
         "Optional random number seed value to make toolbox deterministic.")
     args = parser.parse_args()
     arg_dict = vars(args)
-    print_args(args, parser)
+    # print_args(args, parser)
 
     # Hide GPUs from Pytorch to force CPU processing
     if arg_dict.pop("cpu"):
@@ -53,6 +38,21 @@ if __name__ == '__main__':
 
     print("Running a test of your configuration...\n")
 
+    import librosa
+    import numpy as np
+    import soundfile as sf
+    import torch
+    import noisereduce as nr  
+
+    import encoder.inference
+    import encoder.params_data 
+    from synthesizer.inference import Synthesizer
+    from synthesizer.utils.cleaners import add_breaks, english_cleaners
+    from vocoder import inference as vocoder
+    from vocoder.display import save_attention, save_spectrogram, save_stop_tokens
+    from utils.argutils import print_args
+    from utils.default_models import ensure_default_models
+    from speed_changer.fixSpeed import *
     if torch.cuda.is_available():
         device_id = torch.cuda.current_device()
         gpu_properties = torch.cuda.get_device_properties(device_id)
@@ -157,9 +157,10 @@ if __name__ == '__main__':
             # - If the wav is already loaded:
 
             # get duration info from input audio
-            message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
-                       f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
+            # message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
+            #            f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
             in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
+            # in_fpath = Path("/home/liuhaozhe/voice_cloning_project/collected_audios/celeb_audios/trimmed/Madonna_trim.wav")
 
             fpath_without_ext = os.path.splitext(str(in_fpath))[0]
             speaker_name = os.path.normpath(fpath_without_ext).split(os.sep)[-1]
@@ -219,10 +220,41 @@ if __name__ == '__main__':
         embed[embed < encoder.params_data.set_zero_thres]=0 # 噪声值置零
         embed = embed * amp
 
+        start_syn = time.time()
         # Generating the spectrogram
         text = input("Write a sentence to be synthesized:\n")
-        # text = "A B C D E F G H I J K L M N O P Q R S T U V W X Y Z"
-        
+        # text = "Introduction to Mechanics:"\
+        #     "Mechanics is a branch of physics that deals with the behavior of physical bodies under the influence of various forces. The study of mechanics is important in understanding the behavior of machines, the motion of objects, and the principles of engineering. Mechanics has been an essential part of physics since ancient times and has continued to evolve with advancements in science and technology. This paper will discuss the principles of mechanics, the laws of motion, and the applications of mechanics in engineering and technology."\
+        #     " "\
+        #     "Principles of Mechanics:"\
+        #     " "\
+        #     "The principles of mechanics are based on the laws of motion, which were first proposed by Sir Isaac Newton in the 17th century. The laws of motion form the foundation of mechanics and provide a framework for understanding the behavior of physical bodies. The three laws of motion are:"\
+        #     " "\
+        #     "Law of Inertia: An object at rest will remain at rest, and an object in motion will continue to move in a straight line at a constant speed unless acted upon by an external force."\
+        #     " "\
+        #     "Law of Acceleration: The acceleration of an object is directly proportional to the force applied to it and inversely proportional to its mass."\
+        #     " "\
+        #     "Law of Action and Reaction: For every action, there is an equal and opposite reaction."\
+        #     " "\
+        #     "These laws of motion are essential for understanding the behavior of objects in motion and for predicting the motion of objects in various situations."\
+        #     " "\
+        #     "Applications of Mechanics:"\
+        #     " "\
+        #     "Mechanics has many practical applications in engineering and technology. Some of these applications include:"\
+        #     " "\
+        #     "1.Aerospace Engineering: Mechanics is essential in the design and construction of aircraft and spacecraft. The principles of mechanics are used to calculate the trajectory of a spacecraft, determine the forces acting on it, and ensure that it remains stable during flight."\
+        #     " "\
+        #     "2.Civil Engineering: Mechanics is used in the design and construction of bridges, buildings, and other structures. The principles of mechanics are used to calculate the forces acting on a structure, determine its stability, and ensure that it can withstand various forces, such as wind and earthquakes."\
+        #     " "\
+        #     "3.Automotive Engineering: Mechanics is used in the design and construction of automobiles. The principles of mechanics are used to determine the forces acting on a vehicle, calculate its speed and acceleration, and ensure that it remains stable during operation."\
+        #     " "\
+        #     "4.Robotics: Mechanics is used in the design and construction of robots. The principles of mechanics are used to calculate the forces acting on a robot, determine its stability, and ensure that it can perform its tasks safely and efficiently."\
+        #     " "\
+        #     "5.Manufacturing: Mechanics is used in the design and operation of machines used in manufacturing processes. The principles of mechanics are used to ensure that machines operate safely and efficiently, and to optimize their performance."\
+        #     " "\
+        #     "Conclusion:"\
+        #     " "\
+        #     "Mechanics is an essential branch of physics that provides a framework for understanding the behavior of physical bodies under the influence of various forces. The principles of mechanics are based on the laws of motion, which form the foundation of the field. Mechanics has many practical applications in engineering and technology, from aerospace and automotive engineering to robotics and manufacturing. As science and technology continue to evolve, the principles of mechanics will remain an important part of our understanding of the physical world."
 
         # If seed is specified, reset torch seed and force synthesizer reload
         if args.seed is not None:
@@ -239,22 +271,33 @@ if __name__ == '__main__':
         texts = preprocess_text(text)
         print(f"the list of inputs texts:\n{texts}")
 
-        embeds = [embed] * len(texts)
-        # If you know what the attention layer alignments are, you can retrieve them here by
-        # passing return_alignments=True
-        specs, alignments = synthesizer.synthesize_spectrograms(texts, embeds, return_alignments=True)
-        
+        # embeds = [embed] * len(texts)
+        specs = []
+        alignments = []
+        stop_tokens = []
+        for i, text in enumerate(texts):
+            print(f"No.{i} sequence is {text}")
+            spec, align, stop_token = synthesizer.synthesize_spectrograms([text], [embed], require_visualization=True)
+            specs.append(spec[0])
+            alignments.append(align[0])
+            stop_tokens.append(stop_token[0])
 
         breaks = [spec.shape[1] for spec in specs]
         spec = np.concatenate(specs, axis=1)
+        
 
+        ## Save synthesizer visualization results
         if not os.path.exists("syn_results"):
             os.mkdir("syn_results")
-        save_attention(alignments.detach().cpu().numpy(), "syn_results/attention")
+        save_attention(alignments, "syn_results/attention")
+        save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
         save_spectrogram(spec, "syn_results/mel")
         print("Created the mel spectrogram")
 
+        end_syn = time.time()
+        print(f"Prediction time of synthesizer is {end_syn - start_syn}s")
 
+        start_voc = time.time()
         ## Generating the waveform
         print("Synthesizing the waveform:")
 
@@ -269,8 +312,10 @@ if __name__ == '__main__':
             wav = vocoder.infer_waveform(spec)
         else:
             wav = Synthesizer.griffin_lim(spec)
-
         wav = vocoder.waveform_denoising(wav)
+        end_voc = time.time()
+        print(f"Prediction time of vocoder is {end_voc - start_voc}s")
+        print(f"Prediction time of TTS is {end_voc - start_syn}s")
 
         # Add breaks
         b_ends = np.cumsum(np.array(breaks) * Synthesizer.hparams.hop_size)

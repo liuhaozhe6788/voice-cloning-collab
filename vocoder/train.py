@@ -107,7 +107,7 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
     # best_loss = np.load(best_loss_file_path)[0] if exists(best_loss_file_path) else 1000
 
     # profiler = Profiler(summarize_every=10, disabled=False)
-    for epoch in range(1, 350):
+    for epoch in range(1, 3500):
         start = time.time()
 
         for i, (x, y, m) in enumerate(train_dataloader, 1):
@@ -150,10 +150,11 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
                 with train_summary_writer.as_default():
                     tf.summary.scalar('train_loss', train_loss_window.average, step=step)
 
-            if backup_every != 0 and i % backup_every == 0 :
+            torch.cuda.empty_cache()
+            if backup_every != 0 and step % backup_every == 0 :
                 model.checkpoint(model_dir, optimizer)
 
-            if save_every != 0 and i % save_every == 0 :
+            if save_every != 0 and step % save_every == 0 :
                 dev_loss = validate(dev_dataloader, model, loss_func)
                 msg = f"| Epoch: {epoch} ({i}/{len(train_dataloader)}) | " \
                     f"Train Loss: {train_loss_window.average:.4f} | Dev Loss: {dev_loss:.4f} | " \
@@ -193,4 +194,5 @@ def validate(dataloader, model, loss_func):
                 y = y.unsqueeze(-1)
                 loss = loss_func(y_hat, y).item()
                 losses.append(loss)
-        return sum(losses) / len(losses)
+    torch.cuda.empty_cache()
+    return sum(losses) / len(losses)

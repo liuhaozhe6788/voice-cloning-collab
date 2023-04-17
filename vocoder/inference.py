@@ -78,7 +78,8 @@ def get_dominant_freq(wav):
     N = len(wav)
     fft_wav = rfft(wav)
     fft_freq = rfftfreq(N, 1 / hp.sample_rate)
-    fft_max = max(fft_wav)
+    fft_least_index = np.where(fft_freq >= 60)[0][0]
+    fft_max = max(fft_wav[fft_least_index: ])
     fft_max_index = np.where(fft_wav == fft_max)[0][0]
     fft_max_freq = fft_freq[fft_max_index]
     # plt.plot(fft_freq, fft_wav)

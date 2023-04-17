@@ -86,27 +86,32 @@ def time_since(started) :
 def save_attention(attn, path):
     import matplotlib.pyplot as plt
 
-    if attn.ndim == 2:
-        fig = plt.figure(figsize=(12, 6))
-        plt.imshow(attn.T, interpolation='nearest', aspect='auto')
+    num_plots = len(attn)
+    fig = plt.figure(figsize=(12, 6 * num_plots))
+    for i, a in enumerate(attn):
+        plt.subplot(num_plots, 1, i+1)
+        plt.imshow(a.T, interpolation='nearest', aspect='auto')
         plt.xlabel("Decoder Timestep")
         plt.ylabel("Encoder Timestep")
-        plt.title("Encoder-Decoder Alignment")
-        fig.savefig(f'{path}.png', bbox_inches='tight')
-        plt.close(fig)
-    elif attn.ndim == 3:
-        num_plots = attn.shape[0]
-        fig = plt.figure(figsize=(12, 6 * num_plots))
-        for i, a in enumerate(attn):
-            plt.subplot(num_plots, 1, i+1)
-            plt.imshow(a.T, interpolation='nearest', aspect='auto')
-            plt.xlabel("Decoder Timestep")
-            plt.ylabel("Encoder Timestep")
-            plt.title("Encoder-Decoder Alignment")
-        fig.savefig(f'{path}.png', bbox_inches='tight')
-        plt.close(fig)
-    else:
-        pass
+        plt.title(f"Encoder-Decoder Alignment of No.{i} Sequence")
+    fig.savefig(f'{path}.png', bbox_inches='tight')
+    plt.close(fig)
+
+def save_stop_tokens(stop, path):
+    import matplotlib.pyplot as plt
+
+    num_plots = len(stop)
+    fig = plt.figure(figsize=(12, 6 * num_plots))
+    for i, s in enumerate(stop):
+        s = np.reshape(s, (s.size, 1))
+        plt.subplot(num_plots, 1, i+1)
+        plt.imshow(s.T, interpolation='nearest', aspect='auto')
+        plt.xlabel("Timestep")
+        plt.ylabel("Stop Value")
+        plt.title(f"Stop Tokens of No.{i} Sequence")
+        plt.colorbar()
+    fig.savefig(f'{path}.png', bbox_inches='tight')
+    plt.close(fig)
 
 
 def save_spectrogram(M, path, length=None):

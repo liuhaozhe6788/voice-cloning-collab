@@ -445,6 +445,7 @@ class Tacotron(nn.Module):
         # Need a couple of lists for outputs
         mel_outputs, attn_scores, stop_outputs = [], [], []
 
+        first_stop_token = 0
         # Run the decoder loop
         for t in range(0, steps, self.r):
             prenet_in = mel_outputs[-1][:, :, -1] if t > 0 else go_frame
@@ -454,8 +455,10 @@ class Tacotron(nn.Module):
             mel_outputs.append(mel_frames)
             attn_scores.append(scores)
             stop_outputs.extend([stop_tokens] * self.r)
+            if t == 0:
+                first_stop_token = stop_tokens[0]      
             # Stop the loop when all stop tokens in batch exceed threshold
-            if (stop_tokens > 0.5).all() and t > 10: break
+            if (stop_tokens > first_stop_token * 250).all() and t > 50: break
 
         # Concat the mel outputs into sequence
         mel_outputs = torch.cat(mel_outputs, dim=2)
@@ -473,7 +476,7 @@ class Tacotron(nn.Module):
 
         self.train()
 
-        return mel_outputs, linear, attn_scores
+        return mel_outputs, linear, attn_scores, stop_outputs
 
     def init_model(self):
         for p in self.parameters():
