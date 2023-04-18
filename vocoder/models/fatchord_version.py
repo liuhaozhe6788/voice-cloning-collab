@@ -232,6 +232,8 @@ class WaveRNN(nn.Module):
                 if i % 100 == 0:
                     gen_rate = (i + 1) / (time.time() - start) * b_size / 1000
                     progress_callback(i, seq_len, b_size, gen_rate)
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
 
         output = torch.stack(output).transpose(0, 1)
         output = output.cpu().numpy()

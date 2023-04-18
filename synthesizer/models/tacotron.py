@@ -457,8 +457,10 @@ class Tacotron(nn.Module):
             stop_outputs.extend([stop_tokens] * self.r)
             if t == 0:
                 first_stop_token = stop_tokens[0]      
-            # Stop the loop when all stop tokens in batch exceed threshold
-            if (stop_tokens > first_stop_token * 250).all() and t > 50: break
+            # Stop the loop when all stop tokens in batch exceed threshold compared with the 1st token and the sequence's length exceeds threshold
+            if (stop_tokens > first_stop_token * 500).all() and t > (50 * self.r): break
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
         # Concat the mel outputs into sequence
         mel_outputs = torch.cat(mel_outputs, dim=2)

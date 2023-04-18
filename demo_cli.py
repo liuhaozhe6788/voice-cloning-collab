@@ -207,7 +207,7 @@ if __name__ == '__main__':
             
             standard_wav = Synthesizer.load_preprocess_wav(standard_fpath)
             preprocessed_standard_wav = encoder.inference.preprocess_wav(standard_wav)
-            print("Loaded standard audio file succesfully")
+            print("Loaded standard audio file successfully")
 
             standard_embed = encoder.inference.embed_utterance(preprocessed_standard_wav)
 
