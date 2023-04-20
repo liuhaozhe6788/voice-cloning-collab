@@ -91,8 +91,8 @@ def save_attention(attn, path):
     for i, a in enumerate(attn):
         plt.subplot(num_plots, 1, i+1)
         plt.imshow(a.T, interpolation='nearest', aspect='auto')
-        plt.xlabel("Decoder Timestep")
-        plt.ylabel("Encoder Timestep")
+        plt.xlabel("Decoder Step")
+        plt.ylabel("Encoder Step")
         plt.title(f"Encoder-Decoder Alignment of No.{i} Sequence")
     fig.savefig(f'{path}.png', bbox_inches='tight')
     plt.close(fig)
@@ -103,13 +103,11 @@ def save_stop_tokens(stop, path):
     num_plots = len(stop)
     fig = plt.figure(figsize=(12, 6 * num_plots))
     for i, s in enumerate(stop):
-        s = np.reshape(s, (s.size, 1))
         plt.subplot(num_plots, 1, i+1)
-        plt.imshow(s.T, interpolation='nearest', aspect='auto')
+        plt.plot(s)
         plt.xlabel("Timestep")
         plt.ylabel("Stop Value")
         plt.title(f"Stop Tokens of No.{i} Sequence")
-        plt.colorbar()
     fig.savefig(f'{path}.png', bbox_inches='tight')
     plt.close(fig)
 

@@ -67,7 +67,7 @@ python synthesizer_preprocess_embeds.py <datasets_root>/SV2TTS/synthesizer
 
 **Synthesizer training:** 
 ```
-python synthesizer_train.py <model_id> <datasets_root>/SV2TTS/synthesizer
+python synthesizer_train.py <model_id> <datasets_root>/SV2TTS/synthesizer --use_tb
 ```
 if you want to monitor the training progress, run
 ```
@@ -86,7 +86,7 @@ python vocoder_preprocess.py <datasets_root>
 
 **Vocoder training:** 
 ```
-python vocoder_train.py <model_id> <datasets_root>
+python vocoder_train.py <model_id> <datasets_root> --use_tb
 ```
 if you want to monitor the training progress, run
 ```
