@@ -138,213 +138,197 @@ if __name__ == '__main__':
     # try:
     # Get the reference audio filepath
     # enter the number of reference audios
-    # message1 = "Please enter the number of reference audios:\n"
-    # num_of_input_audio = int(input(message1))
-    num_of_input_audio = 1
+    message1 = "Please enter the number of reference audios:\n"
+    num_of_input_audio = int(input(message1))
+    # num_of_input_audio = 1
 
-    fpaths = [
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/openvoice_official/VOVO.mp3",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/openvoice_official/pleasant.mp3",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/openvoice_official/professional.mp3",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/recorded_audios/long_audios/liuhaozhe.m4a",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/recorded_audios/long_audios/dengmeng.m4a",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/recorded_audios/long_audios/wangqiuyu.m4a",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/celeb_audios/trimmed/Morgan_Freeman_trim.mp3",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/celeb_audios/trimmed/Beckham_trim.wav",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/celeb_audios/trimmed/Angelina_Jolie2.mp3",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/celeb_audios/trimmed/emma_watson_trim.wav"
-    ]
+    for i in range(num_of_input_audio):
+        # Computing the embedding
+        # First, we load the wav using the function that the speaker encoder provides. This is
+        # important: there is preprocessing that must be applied.
 
-    for in_fpath in fpaths:
+        # The following two methods are equivalent:
+        # - Directly load from the filepath:
+        # preprocessed_wav = encoder.preprocess_wav(in_fpath)
+        # - If the wav is already loaded:
 
-        for i in range(num_of_input_audio):
-            # Computing the embedding
-            # First, we load the wav using the function that the speaker encoder provides. This is
-            # important: there is preprocessing that must be applied.
+        # get duration info from input audio
+        message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
+                f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
+        # in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
 
-            # The following two methods are equivalent:
-            # - Directly load from the filepath:
-            # preprocessed_wav = encoder.preprocess_wav(in_fpath)
-            # - If the wav is already loaded:
+        # in_fpath = Path("/home/liuhaozhe/signal_processing_projs/collected_audios/celeb_audios/trimmed/emma_watson_trim.wav")
 
-            # get duration info from input audio
-            message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
-                    f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
-            # in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
+        fpath_without_ext = os.path.splitext(str(in_fpath))[0]
+        speaker_name = os.path.normpath(fpath_without_ext).split(os.sep)[-1]
 
-            # in_fpath = Path("/home/liuhaozhe/signal_processing_projs/collected_audios/celeb_audios/trimmed/emma_watson_trim.wav")
+        is_wav_file, single_wav, wav_path = TransFormat(in_fpath, 'wav')
 
-            fpath_without_ext = os.path.splitext(str(in_fpath))[0]
-            speaker_name = os.path.normpath(fpath_without_ext).split(os.sep)[-1]
-
-            is_wav_file, single_wav, wav_path = TransFormat(in_fpath, 'wav')
-
-            if not is_wav_file:
-                os.remove(wav_path)  # remove intermediate wav files
-            # merge
-            if i == 0:
-                wav = single_wav
-            else:
-                wav = np.append(wav, single_wav)
-        # write to disk
-        path_ori, _ = os.path.split(wav_path)
-        file_ori = 'temp.wav'
-        fpath = os.path.join(path_ori, file_ori)
-        sf.write(fpath, wav, samplerate=encoder.params_data.sampling_rate)
-
-        # adjust the speed
-        totDur_ori, nPause_ori, arDur_ori, nSyl_ori, arRate_ori = AudioAnalysis(path_ori, file_ori)
-        DelFile(path_ori, '.TextGrid')
-        os.remove(fpath)
-
-        preprocessed_wav = encoder.inference.preprocess_wav(wav)
-
-        print("Loaded input audio file succesfully")
-
-        # Then we derive the embedding. There are many functions and parameters that the
-        # speaker encoder interfaces. These are mostly for in-depth research. You will typically
-        # only use this function (with its default parameters):
-        input_embed = encoder.inference.embed_utterance(preprocessed_wav)
-        # Choose standard audio
-
-        fft_max_freq = vocoder.get_dominant_freq(preprocessed_wav)
-        print(f"\nthe dominant frequency of input audio is {fft_max_freq}Hz")
-        if fft_max_freq < encoder.params_data.split_freq:
-            vocoder.hp.sex = 1
-            standard_fpath = "standard_audios/male_1.wav"
+        if not is_wav_file:
+            os.remove(wav_path)  # remove intermediate wav files
+        # merge
+        if i == 0:
+            wav = single_wav
         else:
-            vocoder.hp.sex = 0
-            standard_fpath = "standard_audios/female_1.wav"
+            wav = np.append(wav, single_wav)
+    # write to disk
+    path_ori, _ = os.path.split(wav_path)
+    file_ori = 'temp.wav'
+    fpath = os.path.join(path_ori, file_ori)
+    sf.write(fpath, wav, samplerate=encoder.params_data.sampling_rate)
 
-        if os.path.exists(standard_fpath):
-            
-            standard_wav = Synthesizer.load_preprocess_wav(standard_fpath)
-            preprocessed_standard_wav = encoder.inference.preprocess_wav(standard_wav)
-            print("Loaded standard audio file successfully")
+    # adjust the speed
+    totDur_ori, nPause_ori, arDur_ori, nSyl_ori, arRate_ori = AudioAnalysis(path_ori, file_ori)
+    DelFile(path_ori, '.TextGrid')
+    os.remove(fpath)
 
-            standard_embed = encoder.inference.embed_utterance(preprocessed_standard_wav)
+    preprocessed_wav = encoder.inference.preprocess_wav(wav)
 
-            embed1=np.copy(input_embed).dot(weight)
-            embed2=np.copy(standard_embed).dot(1 - weight)
-            embed=embed1+embed2
-        else: 
-            embed = np.copy(input_embed)
+    print("Loaded input audio file succesfully")
 
-        embed[embed < encoder.params_data.set_zero_thres]=0 # 噪声值置零
-        embed = embed * amp
+    # Then we derive the embedding. There are many functions and parameters that the
+    # speaker encoder interfaces. These are mostly for in-depth research. You will typically
+    # only use this function (with its default parameters):
+    input_embed = encoder.inference.embed_utterance(preprocessed_wav)
+    # Choose standard audio
 
-        start_syn = time.time()
-        # Generating the spectrogram
-        # text = input("Write a sentence to be synthesized:\n")
-        text = "Mechanics is an essential branch of physics that provides a framework for understanding the behavior of physical bodies under the influence of various forces. The principles of mechanics are based on the laws of motion, which form the foundation of the field. Mechanics has many practical applications in engineering and technology, from aerospace and automotive engineering to robotics and manufacturing. As science and technology continue to evolve, the principles of mechanics will remain an important part of our understanding of the physical world."
+    fft_max_freq = vocoder.get_dominant_freq(preprocessed_wav)
+    print(f"\nthe dominant frequency of input audio is {fft_max_freq}Hz")
+    if fft_max_freq < encoder.params_data.split_freq:
+        vocoder.hp.sex = 1
+        standard_fpath = "standard_audios/male_1.wav"
+    else:
+        vocoder.hp.sex = 0
+        standard_fpath = "standard_audios/female_1.wav"
 
-        # If seed is specified, reset torch seed and force synthesizer reload
-        if args.seed is not None:
-            torch.manual_seed(args.seed)
-            synthesizer = Synthesizer(args.syn_model_fpath)
-
-        # The synthesizer works in batch, so you need to put your data in a list or numpy array
-        def preprocess_text(text):
-            text = add_breaks(text) 
-            text = english_cleaners(text)
-            texts = [i.text.strip() for i in nlp(text).sents]  # split paragraph to sentences
-            return texts
-
-        texts = preprocess_text(text)
-        print(f"the list of inputs texts:\n{texts}")
-
-        # embeds = [embed] * len(texts)
-        specs = []
-        alignments = []
-        stop_tokens = []
-        for i, text in enumerate(texts):
-            print(f"No.{i} sequence is {text}")
-            spec, align, stop_token = synthesizer.synthesize_spectrograms([text], [embed], require_visualization=True)
-            specs.append(spec[0])
-            alignments.append(align[0])
-            stop_tokens.append(stop_token[0])
-
-        breaks = [spec.shape[1] for spec in specs]
-        spec = np.concatenate(specs, axis=1)
+    if os.path.exists(standard_fpath):
         
+        standard_wav = Synthesizer.load_preprocess_wav(standard_fpath)
+        preprocessed_standard_wav = encoder.inference.preprocess_wav(standard_wav)
+        print("Loaded standard audio file successfully")
 
-        ## Save synthesizer visualization results
-        if not os.path.exists("syn_results"):
-            os.mkdir("syn_results")
-        # save_attention(alignments, "syn_results/attention")
-        # save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
-        # save_spectrogram(spec, "syn_results/mel")
-        print("Created the mel spectrogram")
+        standard_embed = encoder.inference.embed_utterance(preprocessed_standard_wav)
 
-        end_syn = time.time()
-        print(f"Prediction time of synthesizer is {end_syn - start_syn}s")
+        embed1=np.copy(input_embed).dot(weight)
+        embed2=np.copy(standard_embed).dot(1 - weight)
+        embed=embed1+embed2
+    else: 
+        embed = np.copy(input_embed)
 
-        start_voc = time.time()
-        ## Generating the waveform
-        print("Synthesizing the waveform:")
+    embed[embed < encoder.params_data.set_zero_thres]=0 # 噪声值置零
+    embed = embed * amp
 
-        # If seed is specified, reset torch seed and reload vocoder
-        if args.seed is not None:
-            torch.manual_seed(args.seed)
-            vocoder.load_model(args.voc_model_fpath)
+    start_syn = time.time()
+    # Generating the spectrogram
+    text = input("Write a sentence to be synthesized:\n")
 
-        # Synthesizing the waveform is fairly straightforward. Remember that the longer the
-        # spectrogram, the more time-efficient the vocoder.
-        if not args.griffin_lim:
-            wav = vocoder.infer_waveform(spec)
-        else:
-            wav = Synthesizer.griffin_lim(spec)
+    # If seed is specified, reset torch seed and force synthesizer reload
+    if args.seed is not None:
+        torch.manual_seed(args.seed)
+        synthesizer = Synthesizer(args.syn_model_fpath)
 
-        end_voc = time.time()
-        print(f"Prediction time of vocoder is {end_voc - start_voc}s")
-        print(f"Prediction time of TTS is {end_voc - start_syn}s")
+    # The synthesizer works in batch, so you need to put your data in a list or numpy array
+    def preprocess_text(text):
+        text = add_breaks(text) 
+        text = english_cleaners(text)
+        texts = [i.text.strip() for i in nlp(text).sents]  # split paragraph to sentences
+        return texts
 
-        # Add breaks
-        b_ends = np.cumsum(np.array(breaks) * Synthesizer.hparams.hop_size)
-        b_starts = np.concatenate(([0], b_ends[:-1]))
-        wavs = [wav[start:end] for start, end, in zip(b_starts, b_ends)]
-        breaks = [np.zeros(int(0.15 * Synthesizer.sample_rate))] * len(breaks)
-        wav = np.concatenate([i for w, b in zip(wavs, breaks) for i in (w, b)])
+    texts = preprocess_text(text)
+    print(f"the list of inputs texts:\n{texts}")
 
-        # Trim excess silences to compensate for gaps in spectrograms (issue #53)
-        generated_wav = encoder.inference.preprocess_wav(wav)
-        wav = wav / np.abs(wav).max() * 4
+    # embeds = [embed] * len(texts)
+    specs = []
+    alignments = []
+    stop_tokens = []
+    for i, text in enumerate(texts):
+        print(f"No.{i} sequence is {text}")
+        spec, align, stop_token = synthesizer.synthesize_spectrograms([text], [embed], require_visualization=True)
+        specs.append(spec[0])
+        alignments.append(align[0])
+        stop_tokens.append(stop_token[0])
 
-        # Save it on the disk
-        # filename = "demo_output_%02d.wav" % num_generated
-        if not os.path.exists("out_audios"):
-            os.mkdir("out_audios")
-        
-        dir_path = os.path.dirname(os.path.realpath(__file__))  # current dir 
-        filename = os.path.join(dir_path, f"out_audios/{speaker_name}_syn.wav")
-        # print(wav.dtype)
-        sf.write(filename, wav.astype(np.float32), synthesizer.sample_rate)
-        num_generated += 1
-        print("\nSaved output (havent't change speed) as %s\n\n" % filename)
+    breaks = [spec.shape[1] for spec in specs]
+    spec = np.concatenate(specs, axis=1)
+    
 
-        # Fix Speed(generate new audio)
-        fix_file = work(totDur_ori, 
-                        nPause_ori, 
-                        arDur_ori, 
-                        nSyl_ori, 
-                        arRate_ori, 
-                        filename)
-        print(f"\nSaved output (fixed speed) as {fix_file}\n\n")
+    ## Save synthesizer visualization results
+    if not os.path.exists("syn_results"):
+        os.mkdir("syn_results")
+    # save_attention(alignments, "syn_results/attention")
+    # save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
+    # save_spectrogram(spec, "syn_results/mel")
+    print("Created the mel spectrogram")
+
+    end_syn = time.time()
+    print(f"Prediction time of synthesizer is {end_syn - start_syn}s")
+
+    start_voc = time.time()
+    ## Generating the waveform
+    print("Synthesizing the waveform:")
+
+    # If seed is specified, reset torch seed and reload vocoder
+    if args.seed is not None:
+        torch.manual_seed(args.seed)
+        vocoder.load_model(args.voc_model_fpath)
+
+    # Synthesizing the waveform is fairly straightforward. Remember that the longer the
+    # spectrogram, the more time-efficient the vocoder.
+    if not args.griffin_lim:
+        wav = vocoder.infer_waveform(spec)
+    else:
+        wav = Synthesizer.griffin_lim(spec)
+
+    end_voc = time.time()
+    print(f"Prediction time of vocoder is {end_voc - start_voc}s")
+    print(f"Prediction time of TTS is {end_voc - start_syn}s")
+
+    # Add breaks
+    b_ends = np.cumsum(np.array(breaks) * Synthesizer.hparams.hop_size)
+    b_starts = np.concatenate(([0], b_ends[:-1]))
+    wavs = [wav[start:end] for start, end, in zip(b_starts, b_ends)]
+    breaks = [np.zeros(int(0.15 * Synthesizer.sample_rate))] * len(breaks)
+    wav = np.concatenate([i for w, b in zip(wavs, breaks) for i in (w, b)])
+
+    # Trim excess silences to compensate for gaps in spectrograms (issue #53)
+    # generated_wav = encoder.inference.preprocess_wav(wav)
+    wav = wav / np.abs(wav).max() * 4
+
+    # Save it on the disk
+    # filename = "demo_output_%02d.wav" % num_generated
+    if not os.path.exists("out_audios"):
+        os.mkdir("out_audios")
+    
+    dir_path = os.path.dirname(os.path.realpath(__file__))  # current dir 
+    filename = os.path.join(dir_path, f"out_audios/{speaker_name}_syn.wav")
+    # print(wav.dtype)
+    sf.write(filename, wav.astype(np.float32), synthesizer.sample_rate)
+    num_generated += 1
+    print("\nSaved output (havent't change speed) as %s\n\n" % filename)
+
+    # Fix Speed(generate new audio)
+    fix_file = work(totDur_ori, 
+                    nPause_ori, 
+                    arDur_ori, 
+                    nSyl_ori, 
+                    arRate_ori, 
+                    filename)
+    print(f"\nSaved output (fixed speed) as {fix_file}\n\n")
 
 
-        # # Play the audio (non-blocking)
-        # if not args.no_sound:
-        #     import sounddevice as sd
-        #     try:
-        #         sd.stop()
-        #         sd.play(wav, synthesizer.sample_rate)
-        #     except sd.PortAudioError as e:
-        #         print("\nCaught exception: %s" % repr(e))
-        #         print("Continuing without audio playback. Suppress this message with the \"--no_sound\" flag.\n")
-        #     except:
-        #         raise
+    # # Play the audio (non-blocking)
+    # if not args.no_sound:
+    #     import sounddevice as sd
+    #     try:
+    #         sd.stop()
+    #         sd.play(wav, synthesizer.sample_rate)
+    #     except sd.PortAudioError as e:
+    #         print("\nCaught exception: %s" % repr(e))
+    #         print("Continuing without audio playback. Suppress this message with the \"--no_sound\" flag.\n")
+    #     except:
+    #         raise
 
 
-        # except Exception as e:
-        #     print("Caught exception: %s" % repr(e))
-        #     print("Restarting\n")
+    # except Exception as e:
+    #     print("Caught exception: %s" % repr(e))
+    #     print("Restarting\n")
