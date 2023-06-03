@@ -64,25 +64,30 @@ def infer_waveform(mel, normalize=True,  batched=True, target=8000, overlap=800,
         mel = mel / hp.mel_max_abs_value
     mel = torch.from_numpy(mel[None, ...])
     wav = _model.generate(mel, batched, target, overlap, hp.mu_law, progress_callback)
+    wav = waveform_denoising(wav)
     return wav
 
 def waveform_denoising(wav):
     fft_max_freq = get_dominant_freq(wav)
-    prop_decrease = hp.prop_decrease_low_freq if fft_max_freq < hp.split_freq else hp.prop_decrease_high_freq
+    prop_decrease = hp.prop_decrease_low_freq if hp.sex else hp.prop_decrease_high_freq
     # prop_decrease = 0.6 for low freq audio
     # prop_decrease = 0.9 for high freq audio
     print(f"\nthe dominant frequency of output audio is {fft_max_freq}Hz")
-    return nr.reduce_noise(wav, hp.sample_rate, prop_decrease=prop_decrease)
 
-def get_dominant_freq(wav):
+    wav = nr.reduce_noise(wav, hp.sample_rate, prop_decrease=prop_decrease)
+
+    return wav
+
+def get_dominant_freq(wav, name="fft"):
+    import matplotlib.pyplot as plt
     N = len(wav)
     fft_wav = rfft(wav)
-    fft_freq = rfftfreq(N, 1 / hp.sample_rate)
+    fft_freq = np.real(rfftfreq(N, 1 / hp.sample_rate))
     fft_least_index = np.where(fft_freq >= 60)[0][0]
     fft_max = max(fft_wav[fft_least_index: ])
     fft_max_index = np.where(fft_wav == fft_max)[0][0]
     fft_max_freq = fft_freq[fft_max_index]
-    # plt.plot(fft_freq, fft_wav)
     # plt.clf()
-    # plt.savefig(f"{speaker_name}.png", dpi=300)
+    # plt.plot(fft_freq, fft_wav)
+    # plt.savefig(f"{name}.png", dpi=300)
     return fft_max_freq

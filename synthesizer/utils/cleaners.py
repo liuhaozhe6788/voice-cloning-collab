@@ -190,9 +190,9 @@ def split_conj(text):
 def add_breaks(text):
     text = re.sub(r"(\d{1,3}(,\d{3})+)\.?(\d+)?", lambda x: x.group(1).replace(",", "") + (("." + x.group(3)) if x.group(3) else ""), text)  # remove comma in numbers
     text = text.replace('-', ' ')
-    text = text.replace(',', '.')
-    text = text.replace(';', '.')
-    text = text.replace(':', '.')
+    text = text.replace(',', '. ')
+    text = text.replace(';', '. ')
+    text = text.replace(':', '. ')
     return text
 
 

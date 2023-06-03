@@ -43,8 +43,8 @@ hparams = HParams(
         tts_num_highways = 4,
         tts_dropout = 0.5,
         tts_cleaner_names = ["english_cleaners"],
-        tts_start_threshold = -2.4, 
-        tts_stop_threshold = -3.4,                  # Value below which audio generation ends.
+        tts_start_threshold = -2.0, 
+        tts_stop_threshold = -1.8,                  # Value below which audio generation ends.
                                                     # For example, for a range of [-4, 4], this
                                                     # will terminate the sequence at the first
                                                     # frame that has all values < -3.4
@@ -55,7 +55,7 @@ hparams = HParams(
                         (2,  2e-4,  160_000,  12),   #
                         (2,  1e-4, 320_000,  12),   # r = reduction factor (# of mel frames
                         (2,  3e-5, 1280_000,  12),   #     synthesized for each decoder iteration)
-                        (2,  1e-5, 5120_000,  12)],  # lr = learning rate
+                        (2,  1e-5, 10_240_000,  32)],  # lr = learning rate
 
         tts_clip_grad_norm = 1.0,                   # clips the gradient norm to prevent explosion - set to None if not needed
         tts_eval_interval = 100,                    # Number of steps between model evaluation (sample generation)

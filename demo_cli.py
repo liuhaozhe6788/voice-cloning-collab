@@ -1,7 +1,7 @@
 import argparse
 from ctypes import alignment
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from pathlib import Path
 import spacy
 import time
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     "states and restart from scratch.")
     parser.add_argument("-m", "--models_dir", type=Path, default="saved_models",
                         help="Directory containing all saved models")
-    parser.add_argument("--weight", type=float, default=0.7,
+    parser.add_argument("--weight", type=float, default=1,
                         help="weight of input audio for voice filter")
     parser.add_argument("--griffin_lim",
                         action="store_true",
@@ -38,11 +38,9 @@ if __name__ == '__main__':
 
     print("Running a test of your configuration...\n")
 
-    import librosa
     import numpy as np
     import soundfile as sf
     import torch
-    import noisereduce as nr  
 
     import encoder.inference
     import encoder.params_data 
@@ -137,14 +135,27 @@ if __name__ == '__main__':
     weight = arg_dict["weight"] # 声音美颜的用户语音权重
     amp = 1
 
-    # while True:
     # try:
     # Get the reference audio filepath
-    while True:
-        # enter the number of reference audios
-        # message1 = "Please enter the number of reference audios:\n"
-        # num_of_input_audio = int(input(message1))
-        num_of_input_audio = 1
+    # enter the number of reference audios
+    # message1 = "Please enter the number of reference audios:\n"
+    # num_of_input_audio = int(input(message1))
+    num_of_input_audio = 1
+
+    fpaths = [
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/openvoice_official/VOVO.mp3",
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/openvoice_official/pleasant.mp3",
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/openvoice_official/professional.mp3",
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/recorded_audios/long_audios/liuhaozhe.m4a",
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/recorded_audios/long_audios/dengmeng.m4a",
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/recorded_audios/long_audios/wangqiuyu.m4a",
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/celeb_audios/trimmed/Morgan_Freeman_trim.mp3",
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/celeb_audios/trimmed/Beckham_trim.wav",
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/celeb_audios/trimmed/Angelina_Jolie2.mp3",
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/celeb_audios/trimmed/emma_watson_trim.wav"
+    ]
+
+    for in_fpath in fpaths:
 
         for i in range(num_of_input_audio):
             # Computing the embedding
@@ -158,15 +169,15 @@ if __name__ == '__main__':
 
             # get duration info from input audio
             message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
-                       f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
-            in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
-            # in_fpath = Path("/home/liuhaozhe/voice_cloning_project/collected_audios/celeb_audios/trimmed/Madonna_trim.wav")
+                    f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
+            # in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
+
+            # in_fpath = Path("/home/liuhaozhe/signal_processing_projs/collected_audios/celeb_audios/trimmed/emma_watson_trim.wav")
 
             fpath_without_ext = os.path.splitext(str(in_fpath))[0]
             speaker_name = os.path.normpath(fpath_without_ext).split(os.sep)[-1]
 
             is_wav_file, single_wav, wav_path = TransFormat(in_fpath, 'wav')
-            # 除了m4a格式无法工作而必须转换以外，无论原格式是否为wav，从稳定性的角度考虑也最好再转为wav（因为某些wav本身不带比特率属性，无法在此代码中工作，因此需要转换以赋予其该属性）
 
             if not is_wav_file:
                 os.remove(wav_path)  # remove intermediate wav files
@@ -199,8 +210,10 @@ if __name__ == '__main__':
         fft_max_freq = vocoder.get_dominant_freq(preprocessed_wav)
         print(f"\nthe dominant frequency of input audio is {fft_max_freq}Hz")
         if fft_max_freq < encoder.params_data.split_freq:
+            vocoder.hp.sex = 1
             standard_fpath = "standard_audios/male_1.wav"
         else:
+            vocoder.hp.sex = 0
             standard_fpath = "standard_audios/female_1.wav"
 
         if os.path.exists(standard_fpath):
@@ -222,39 +235,8 @@ if __name__ == '__main__':
 
         start_syn = time.time()
         # Generating the spectrogram
-        text = input("Write a sentence to be synthesized:\n")
-        # text = "Introduction to Mechanics:"\
-        #     "Mechanics is a branch of physics that deals with the behavior of physical bodies under the influence of various forces. The study of mechanics is important in understanding the behavior of machines, the motion of objects, and the principles of engineering. Mechanics has been an essential part of physics since ancient times and has continued to evolve with advancements in science and technology. This paper will discuss the principles of mechanics, the laws of motion, and the applications of mechanics in engineering and technology."\
-        #     " "\
-        #     "Principles of Mechanics:"\
-        #     " "\
-        #     "The principles of mechanics are based on the laws of motion, which were first proposed by Sir Isaac Newton in the 17th century. The laws of motion form the foundation of mechanics and provide a framework for understanding the behavior of physical bodies. The three laws of motion are:"\
-        #     " "\
-        #     "Law of Inertia: An object at rest will remain at rest, and an object in motion will continue to move in a straight line at a constant speed unless acted upon by an external force."\
-        #     " "\
-        #     "Law of Acceleration: The acceleration of an object is directly proportional to the force applied to it and inversely proportional to its mass."\
-        #     " "\
-        #     "Law of Action and Reaction: For every action, there is an equal and opposite reaction."\
-        #     " "\
-        #     "These laws of motion are essential for understanding the behavior of objects in motion and for predicting the motion of objects in various situations."\
-        #     " "\
-        #     "Applications of Mechanics:"\
-        #     " "\
-        #     "Mechanics has many practical applications in engineering and technology. Some of these applications include:"\
-        #     " "\
-        #     "1.Aerospace Engineering: Mechanics is essential in the design and construction of aircraft and spacecraft. The principles of mechanics are used to calculate the trajectory of a spacecraft, determine the forces acting on it, and ensure that it remains stable during flight."\
-        #     " "\
-        #     "2.Civil Engineering: Mechanics is used in the design and construction of bridges, buildings, and other structures. The principles of mechanics are used to calculate the forces acting on a structure, determine its stability, and ensure that it can withstand various forces, such as wind and earthquakes."\
-        #     " "\
-        #     "3.Automotive Engineering: Mechanics is used in the design and construction of automobiles. The principles of mechanics are used to determine the forces acting on a vehicle, calculate its speed and acceleration, and ensure that it remains stable during operation."\
-        #     " "\
-        #     "4.Robotics: Mechanics is used in the design and construction of robots. The principles of mechanics are used to calculate the forces acting on a robot, determine its stability, and ensure that it can perform its tasks safely and efficiently."\
-        #     " "\
-        #     "5.Manufacturing: Mechanics is used in the design and operation of machines used in manufacturing processes. The principles of mechanics are used to ensure that machines operate safely and efficiently, and to optimize their performance."\
-        #     " "\
-        #     "Conclusion:"\
-        #     " "\
-        #     "Mechanics is an essential branch of physics that provides a framework for understanding the behavior of physical bodies under the influence of various forces. The principles of mechanics are based on the laws of motion, which form the foundation of the field. Mechanics has many practical applications in engineering and technology, from aerospace and automotive engineering to robotics and manufacturing. As science and technology continue to evolve, the principles of mechanics will remain an important part of our understanding of the physical world."
+        # text = input("Write a sentence to be synthesized:\n")
+        text = "Mechanics is an essential branch of physics that provides a framework for understanding the behavior of physical bodies under the influence of various forces. The principles of mechanics are based on the laws of motion, which form the foundation of the field. Mechanics has many practical applications in engineering and technology, from aerospace and automotive engineering to robotics and manufacturing. As science and technology continue to evolve, the principles of mechanics will remain an important part of our understanding of the physical world."
 
         # If seed is specified, reset torch seed and force synthesizer reload
         if args.seed is not None:
@@ -289,9 +271,9 @@ if __name__ == '__main__':
         ## Save synthesizer visualization results
         if not os.path.exists("syn_results"):
             os.mkdir("syn_results")
-        save_attention(alignments, "syn_results/attention")
-        save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
-        save_spectrogram(spec, "syn_results/mel")
+        # save_attention(alignments, "syn_results/attention")
+        # save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
+        # save_spectrogram(spec, "syn_results/mel")
         print("Created the mel spectrogram")
 
         end_syn = time.time()
@@ -312,7 +294,7 @@ if __name__ == '__main__':
             wav = vocoder.infer_waveform(spec)
         else:
             wav = Synthesizer.griffin_lim(spec)
-        wav = vocoder.waveform_denoising(wav)
+
         end_voc = time.time()
         print(f"Prediction time of vocoder is {end_voc - start_voc}s")
         print(f"Prediction time of TTS is {end_voc - start_syn}s")
@@ -325,7 +307,7 @@ if __name__ == '__main__':
         wav = np.concatenate([i for w, b in zip(wavs, breaks) for i in (w, b)])
 
         # Trim excess silences to compensate for gaps in spectrograms (issue #53)
-        # generated_wav = encoder.preprocess_wav(generated_wav)
+        generated_wav = encoder.inference.preprocess_wav(wav)
         wav = wav / np.abs(wav).max() * 4
 
         # Save it on the disk

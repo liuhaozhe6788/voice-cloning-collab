@@ -30,7 +30,7 @@ if __name__ == "__main__":
         "of those weights and wavs generated during training.")
     parser.add_argument("-g", "--ground_truth", action="store_true", help= \
         "Train on ground truth spectrograms (<datasets_root>/SV2TTS/synthesizer/mels).")
-    parser.add_argument("-s", "--save_every", type=int, default=500, help= \
+    parser.add_argument("-s", "--save_every", type=int, default=10000, help= \
         "Number of steps between updates of the model on the disk. Set to 0 to never save the "
         "model.")
     parser.add_argument("-b", "--backup_every", type=int, default=10000, help= \

@@ -32,7 +32,7 @@ voc_res_blocks = 10
 
 # Training
 voc_batch_size = 256
-voc_lr = 1e-4
+voc_lr = 1e-5
 voc_gen_at_checkpoint = 5           # number of samples to generate at each checkpoint
 voc_pad = 2                         # this will pad the input so that the resnet can 'see' wider 
                                     # than input length
@@ -44,6 +44,7 @@ voc_target = 8000                   # target number of samples to be generated i
 voc_overlap = 400                   # number of samples for crossfading between batches
 
 # Output Noise Reduce
-split_freq = 165                    # split frequency for output audio noise reduce
 prop_decrease_low_freq = 0.6        # prop decrease for low dominant frequency
 prop_decrease_high_freq = 0.9        # prop decrease for high dominant frequency
+
+sex = -1                        

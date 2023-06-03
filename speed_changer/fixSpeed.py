@@ -9,7 +9,7 @@ import soundfile as sf
 from parselmouth.praat import run_file
 
 high_lim_speed_factor = 1.0
-low_lim_speed_factor = 0.6
+low_lim_speed_factor = 0.5
 
 def AudioAnalysis(dir, file):
     sound = os.path.join(dir, file) 
