@@ -21,7 +21,7 @@ if __name__ == '__main__':
                         help="weight of input audio for voice filter")
     parser.add_argument("--griffin_lim",
                         action="store_true",
-                        help="if True, use vocoder, else use griffin-lim")
+                        help="if True, use griffin-lim, else use vocoder")
     parser.add_argument("--cpu", action="store_true", help=\
         "If True, processing is done on CPU, even when a GPU is available.")
     parser.add_argument("--no_sound", action="store_true", help=\
@@ -155,9 +155,7 @@ if __name__ == '__main__':
         # get duration info from input audio
         message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
                 f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
-        # in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
-
-        # in_fpath = Path("/home/liuhaozhe/signal_processing_projs/collected_audios/celeb_audios/trimmed/emma_watson_trim.wav")
+        in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
 
         fpath_without_ext = os.path.splitext(str(in_fpath))[0]
         speaker_name = os.path.normpath(fpath_without_ext).split(os.sep)[-1]
