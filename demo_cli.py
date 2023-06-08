@@ -21,7 +21,7 @@ if __name__ == '__main__':
                         help="weight of input audio for voice filter")
     parser.add_argument("--griffin_lim",
                         action="store_true",
-                        help="if True, use vocoder, else use griffin-lim")
+                        help="if True, use griffin-lim, else use vocoder")
     parser.add_argument("--cpu", action="store_true", help=\
         "If True, processing is done on CPU, even when a GPU is available.")
     parser.add_argument("--no_sound", action="store_true", help=\
@@ -236,7 +236,7 @@ if __name__ == '__main__':
         start_syn = time.time()
         # Generating the spectrogram
         # text = input("Write a sentence to be synthesized:\n")
-        text = "Mechanics is an essential branch of physics that provides a framework for understanding the behavior of physical bodies under the influence of various forces. The principles of mechanics are based on the laws of motion, which form the foundation of the field. Mechanics has many practical applications in engineering and technology, from aerospace and automotive engineering to robotics and manufacturing. As science and technology continue to evolve, the principles of mechanics will remain an important part of our understanding of the physical world."
+        text = "The North Wind and the Sun were disputing which was the stronger, when a traveler came along wrapped in a warm cloak. They agreed that the one who first succeeded in making the traveler take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveler fold his cloak around him; and at last the North Wind gave up the attempt. Then the Sun shined out warmly, and immediately the traveler took off his cloak.And so the North Wind was obliged to confess that the Sun was the stronger of the two."
 
         # If seed is specified, reset torch seed and force synthesizer reload
         if args.seed is not None:

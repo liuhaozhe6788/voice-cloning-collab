@@ -32,7 +32,7 @@ voc_res_blocks = 10
 
 # Training
 voc_batch_size = 256
-voc_lr = 1e-5
+voc_lr = 1e-6
 voc_gen_at_checkpoint = 5           # number of samples to generate at each checkpoint
 voc_pad = 2                         # this will pad the input so that the resnet can 'see' wider 
                                     # than input length
