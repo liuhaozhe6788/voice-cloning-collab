@@ -1,8 +1,8 @@
-from encoder.data_objects.random_cycler import RandomCycler
-from encoder.data_objects.speaker_batch import SpeakerBatch
-from encoder.data_objects.utterance_batch import UtteranceBatch
-from encoder.data_objects.speaker import Speaker
-from encoder.params_data import partials_n_frames
+from speaker_encoder.data_objects.random_cycler import RandomCycler
+from speaker_encoder.data_objects.speaker_batch import SpeakerBatch
+from speaker_encoder.data_objects.utterance_batch import UtteranceBatch
+from speaker_encoder.data_objects.speaker import Speaker
+from speaker_encoder.params_data import partials_n_frames
 from torch.utils.data import Dataset, DataLoader
 from pathlib import Path
 from os import listdir

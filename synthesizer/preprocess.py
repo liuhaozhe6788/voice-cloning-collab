@@ -2,7 +2,7 @@ from multiprocessing.pool import Pool
 from synthesizer import audio
 from functools import partial
 from itertools import chain, groupby
-from encoder import inference as encoder
+from speaker_encoder import inference as encoder
 from pathlib import Path
 from utils import logmmse
 from tqdm import tqdm

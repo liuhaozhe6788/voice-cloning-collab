@@ -5,7 +5,7 @@ import numpy as np
 import umap
 import visdom
 
-from encoder.data_objects.speaker_verification_dataset import Train_Dataset
+from speaker_encoder.data_objects.speaker_verification_dataset import Train_Dataset
 
 
 colormap = np.array([
@@ -67,8 +67,8 @@ class Visualizations:
     def log_params(self):
         if self.disabled:
             return
-        from encoder import params_data
-        from encoder import params_model
+        from speaker_encoder import params_data
+        from speaker_encoder import params_model
         param_string = "<b>Model parameters</b>:<br>"
         for param_name in (p for p in dir(params_model) if not p.startswith("__")):
             value = getattr(params_model, param_name)

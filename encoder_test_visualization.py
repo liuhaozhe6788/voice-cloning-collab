@@ -14,10 +14,10 @@ import umap
 
 import torch
 
-from encoder.data_objects import DataLoader, Train_Dataset, Dev_Dataset
-from encoder.model import SpeakerEncoder
-from encoder.params_model import *
-from encoder.params_data import *
+from speaker_encoder.data_objects import DataLoader, Train_Dataset, Dev_Dataset
+from speaker_encoder.model import SpeakerEncoder
+from speaker_encoder.params_model import *
+from speaker_encoder.params_data import *
 
 colormap = np.array([
     [76, 255, 0],

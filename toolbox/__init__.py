@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import soundfile as sf
 
-from encoder import inference as encoder
+from speaker_encoder import inference as encoder
 from synthesizer.inference import Synthesizer
 from synthesizer.hparams import hparams
 from toolbox.ui import UI

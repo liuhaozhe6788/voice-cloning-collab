@@ -13,7 +13,7 @@ from PyQt5.QtCore import Qt, QStringListModel
 from PyQt5.QtWidgets import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-from encoder.inference import plot_embedding_as_heatmap
+from speaker_encoder.inference import plot_embedding_as_heatmap
 from toolbox.utterance import Utterance
 
 filterwarnings("ignore")

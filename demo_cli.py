@@ -42,8 +42,8 @@ if __name__ == '__main__':
     import soundfile as sf
     import torch
 
-    import encoder.inference
-    import encoder.params_data 
+    import speaker_encoder.inference
+    import speaker_encoder.params_data 
     from synthesizer.inference import Synthesizer
     from synthesizer.utils.cleaners import add_breaks, english_cleaners
     from vocoder import inference as vocoder
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     else:
         print("Preparing the encoder and the synthesizer...")
     ensure_default_models(args.run_id, Path("saved_models"))
-    encoder.inference.load_model(list(args.models_dir.glob(f"{args.run_id}/encoder.pt"))[0])
+    speaker_encoder.inference.load_model(list(args.models_dir.glob(f"{args.run_id}/encoder.pt"))[0])
     synthesizer = Synthesizer(list(args.models_dir.glob(f"{args.run_id}/synthesizer.pt"))[0])
     if not args.griffin_lim:
         vocoder.load_model(list(args.models_dir.glob(f"{args.run_id}/vocoder.pt"))[0])
@@ -173,26 +173,26 @@ if __name__ == '__main__':
     path_ori, _ = os.path.split(wav_path)
     file_ori = 'temp.wav'
     fpath = os.path.join(path_ori, file_ori)
-    sf.write(fpath, wav, samplerate=encoder.params_data.sampling_rate)
+    sf.write(fpath, wav, samplerate=speaker_encoder.params_data.sampling_rate)
 
     # adjust the speed
     totDur_ori, nPause_ori, arDur_ori, nSyl_ori, arRate_ori = AudioAnalysis(path_ori, file_ori)
     DelFile(path_ori, '.TextGrid')
     os.remove(fpath)
 
-    preprocessed_wav = encoder.inference.preprocess_wav(wav)
+    preprocessed_wav = speaker_encoder.inference.preprocess_wav(wav)
 
     print("Loaded input audio file succesfully")
 
     # Then we derive the embedding. There are many functions and parameters that the
     # speaker encoder interfaces. These are mostly for in-depth research. You will typically
     # only use this function (with its default parameters):
-    input_embed = encoder.inference.embed_utterance(preprocessed_wav)
+    input_embed = speaker_encoder.inference.embed_utterance(preprocessed_wav)
     # Choose standard audio
 
     fft_max_freq = vocoder.get_dominant_freq(preprocessed_wav)
     print(f"\nthe dominant frequency of input audio is {fft_max_freq}Hz")
-    if fft_max_freq < encoder.params_data.split_freq:
+    if fft_max_freq < speaker_encoder.params_data.split_freq:
         vocoder.hp.sex = 1
         standard_fpath = "standard_audios/male_1.wav"
     else:
@@ -202,10 +202,10 @@ if __name__ == '__main__':
     if os.path.exists(standard_fpath):
         
         standard_wav = Synthesizer.load_preprocess_wav(standard_fpath)
-        preprocessed_standard_wav = encoder.inference.preprocess_wav(standard_wav)
+        preprocessed_standard_wav = speaker_encoder.inference.preprocess_wav(standard_wav)
         print("Loaded standard audio file successfully")
 
-        standard_embed = encoder.inference.embed_utterance(preprocessed_standard_wav)
+        standard_embed = speaker_encoder.inference.embed_utterance(preprocessed_standard_wav)
 
         embed1=np.copy(input_embed).dot(weight)
         embed2=np.copy(standard_embed).dot(1 - weight)
@@ -213,7 +213,7 @@ if __name__ == '__main__':
     else: 
         embed = np.copy(input_embed)
 
-    embed[embed < encoder.params_data.set_zero_thres]=0 # 噪声值置零
+    embed[embed < speaker_encoder.params_data.set_zero_thres]=0 # 噪声值置零
     embed = embed * amp
 
     start_syn = time.time()

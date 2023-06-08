@@ -1,5 +1,5 @@
 from utils.argutils import print_args
-from encoder.train import train
+from speaker_encoder.train import train
 from pathlib import Path
 import argparse
 

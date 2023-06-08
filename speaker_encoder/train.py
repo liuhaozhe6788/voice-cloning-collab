@@ -4,10 +4,10 @@ from os.path import exists
 
 import torch
 
-from encoder.data_objects import DataLoader, Train_Dataset, Dev_Dataset
-from encoder.model import SpeakerEncoder
-from encoder.params_model import *
-from encoder.visualizations import Visualizations
+from speaker_encoder.data_objects import DataLoader, Train_Dataset, Dev_Dataset
+from speaker_encoder.model import SpeakerEncoder
+from speaker_encoder.params_model import *
+from speaker_encoder.visualizations import Visualizations
 from utils.profiler import Profiler
 
 

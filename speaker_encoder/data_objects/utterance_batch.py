@@ -1,7 +1,7 @@
 from pathlib import Path
 import numpy as np
 from typing import List
-from encoder.data_objects.utterance import Utterance
+from speaker_encoder.data_objects.utterance import Utterance
 
 
 class UtteranceBatch:

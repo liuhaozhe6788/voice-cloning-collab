@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List
-from encoder.data_objects.speaker import Speaker
+from speaker_encoder.data_objects.speaker import Speaker
 
 
 class SpeakerBatch:

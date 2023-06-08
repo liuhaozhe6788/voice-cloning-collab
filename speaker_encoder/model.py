@@ -1,5 +1,5 @@
-from encoder.params_model import *
-from encoder.params_data import *
+from speaker_encoder.params_model import *
+from speaker_encoder.params_data import *
 from scipy.interpolate import interp1d
 from sklearn.metrics import roc_curve
 from torch.nn.utils import clip_grad_norm_
