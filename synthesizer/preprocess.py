@@ -325,9 +325,12 @@ def process_utterance(wav: np.ndarray, text: str, out_dir: Path, basename: str,
 
     # Skip existing utterances if needed
     mel_fpath = out_dir.joinpath("mels", "mel-%s.npy" % basename)
+    mfcc_fpath = out_dir.joinpath("mfccs", "mfcc-%s.npy" % basename)
     wav_fpath = out_dir.joinpath("audio", "audio-%s.npy" % basename)
-    if skip_existing and mel_fpath.exists() and wav_fpath.exists():
+    if skip_existing and mel_fpath.exists() and mfcc_fpath.exists() and wav_fpath.exists():
         return None
+    
+    #TODO: add MFCC
 
     # Trim silence
     wav = encoder.preprocess_wav(wav, normalize=False, trim_silence=trim_silence)

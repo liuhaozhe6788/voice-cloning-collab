@@ -523,3 +523,26 @@ class Tacotron(nn.Module):
         if print_out:
             print("Trainable Parameters: %.3fM" % parameters)
         return parameters
+
+class EmotionTacotron(Tacotron):
+    def __init__(self, embed_dims, num_chars, encoder_dims, decoder_dims, n_mels, 
+                 fft_bins, postnet_dims, encoder_K, lstm_dims, postnet_K, num_highways,
+                 dropout, stop_threshold, speaker_embedding_size, emotion_embedding_size):
+        super().__init__(embed_dims, num_chars, encoder_dims, decoder_dims, n_mels, 
+                 fft_bins, postnet_dims, encoder_K, lstm_dims, postnet_K, num_highways,
+                 dropout, stop_threshold, speaker_embedding_size)
+        self.emotion_embedding_size=emotion_embedding_size
+        self.concat_embed_proj = nn.Linear(speaker_embedding_size+self.emotion_embedding_size, speaker_embedding_size, bias=False)
+
+    def forward(self, x, m, speaker_embedding, emotion_embedding):
+        # Concat speaker embedding and emotion embedding
+        speech_embedding=self.concat_embed_proj(torch.cat((speaker_embedding,emotion_embedding), dim=1))
+        return super().forward(x, m, speech_embedding)
+
+    def generate(self, x, speaker_embedding=None, emotion_embedding=None, steps=2000):
+        self.eval()
+
+        # Concat speaker embedding and emotion embedding
+        speech_embedding=self.concat_embed_proj(torch.cat((speaker_embedding,emotion_embedding), dim=1))
+        return super().generate(x, speech_embedding, steps)
+    
