@@ -1,8 +1,12 @@
 from vocoder.models.fatchord_version import WaveRNN
 from vocoder import hparams as hp
 from scipy.fft import rfft, rfftfreq
-import torch
+from scipy import signal
+from denoiser.pretrained import master64
+import librosa
 import numpy as np
+import torch
+import torchaudio
 import noisereduce as nr    
 
 
@@ -68,15 +72,15 @@ def infer_waveform(mel, normalize=True,  batched=True, target=8000, overlap=800,
     return wav
 
 def waveform_denoising(wav):
-    fft_max_freq = get_dominant_freq(wav)
     prop_decrease = hp.prop_decrease_low_freq if hp.sex else hp.prop_decrease_high_freq
-    # prop_decrease = 0.6 for low freq audio
-    # prop_decrease = 0.9 for high freq audio
-    print(f"\nthe dominant frequency of output audio is {fft_max_freq}Hz")
-
-    wav = nr.reduce_noise(wav, hp.sample_rate, prop_decrease=prop_decrease)
-
-    return wav
+    if torch.cuda.is_available():
+        _device = torch.device('cuda')
+    else:
+        _device = torch.device('cpu')
+    model = master64().to(_device)
+    noisy=torch.from_numpy(np.array([wav])).to(_device).float()
+    estimate = model(noisy)[0].cpu().detach().numpy()
+    return  nr.reduce_noise(np.squeeze(estimate), hp.sample_rate, prop_decrease=prop_decrease) 
 
 def get_dominant_freq(wav, name="fft"):
     import matplotlib.pyplot as plt

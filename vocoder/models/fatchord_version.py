@@ -250,9 +250,10 @@ class WaveRNN(nn.Module):
             output = de_emphasis(output)
 
         # Fade-out at the end to avoid signal cutting out suddenly
-        fade_out = np.linspace(1, 0, 20 * self.hop_length)
+        fade_out_len = min(wave_len, 20 * self.hop_length)
+        fade_out = np.linspace(1, 0, fade_out_len)
         output = output[:wave_len]
-        output[-20 * self.hop_length:] *= fade_out
+        output[-fade_out_len:] *= fade_out
         
         self.train()
 
