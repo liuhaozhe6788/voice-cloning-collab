@@ -121,14 +121,13 @@ python encoder_test_visualization.py <model_id> <datasets_root>
 The results are saved in dim_reduction_results/.
 
 ## Pretrained models
-You can download the pretrained model from [this](https://drive.google.com/drive/folders/1oi5the9QxNbpOol_I5Qpr42hvoFXdhEF) and extract as saved_models/default
+You can download the pretrained model from [this](https://drive.google.com/drive/folders/19fhjjAbWq60zv1Bl6Y51snGbG1r5kaN2) and extract as saved_models/default
 ## What's new
 **2022.05.19：** We calculated GE2E loss in encoder with CUDA rather than originally-configured CPU. It speeds up the encoder training speed.<br>
 **2022.07.15：** We added Loss animation plot for synthesizer and vocoder.<br>
 **2022.07.19：** We added response time and Griffin-Lim vocoder results for demo_toolbox.<br>
 **2022.07.29：** We added model validation for encoder, synthesizer and vocoder.<br>
-**2022.08.02：** We added voxceleb train and dev data for encoder. We added noise reduce method for the output wav from vocoder.
-[noisereduce reference](https://github.com/timsainb/noisereduce)<br>
+**2022.08.02：** We added voxceleb train and dev data for encoder. We added [noisereduce](https://github.com/timsainb/noisereduce) denoiser for the output wav from vocoder.<br>
 **2022.08.06：** We split the long text into short sentences using spacy for input of synthesizer. Make sure to install spaCy model en_core_web_sm by 
 `python -m spacy download en_core_web_sm`<br>
 **2022.09.02：** We set prop_decrease=0.6 for male and 0.9 for female in noisereduce function.(输出滤波，男女声使用不同的滤波参数)<br>
@@ -140,3 +139,4 @@ You can download the pretrained model from [this](https://drive.google.com/drive
 **2022.12.31：** added speaker embeddings dimension reduction visualzation results.<br>
 **2023.01.01：** did more text preprocessing and text cleaning for TTS text input.<br>
 **2023.02.27：** preprocessed ascii chars and abbreviations.<br>
+**2023.06.09：** We added VCTK train and dev data for synthesizer. We also combine a [deep learning denoiser](https://github.com/facebookresearch/denoiser) with the [noisereduce](https://github.com/timsainb/noisereduce) denoiser for optimized output wav quality.<br>
