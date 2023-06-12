@@ -9,6 +9,7 @@ from tqdm import tqdm
 import numpy as np
 import librosa
 import random
+from emotion_encoder.utils import get_mfcc
 
 
 def preprocess_librispeech(datasets_root: Path, out_dir: Path, n_processes: int, skip_existing: bool, hparams,
@@ -28,6 +29,7 @@ def preprocess_librispeech(datasets_root: Path, out_dir: Path, n_processes: int,
     train_out_dir.mkdir(exist_ok=True)
     train_out_dir.joinpath("mels").mkdir(exist_ok=True)
     train_out_dir.joinpath("audio").mkdir(exist_ok=True)
+    train_out_dir.joinpath("mfccs").mkdir(exist_ok=True)
     
     # Create a metadata file
     train_metadata_fpath = train_out_dir.joinpath("train.txt")
@@ -37,6 +39,7 @@ def preprocess_librispeech(datasets_root: Path, out_dir: Path, n_processes: int,
     dev_out_dir.mkdir(exist_ok=True)
     dev_out_dir.joinpath("mels").mkdir(exist_ok=True)
     dev_out_dir.joinpath("audio").mkdir(exist_ok=True)
+    dev_out_dir.joinpath("mfccs").mkdir(exist_ok=True)
 
     # Create a metadata file
     dev_metadata_fpath = dev_out_dir.joinpath("dev.txt")
@@ -91,7 +94,6 @@ def preprocess_librispeech(datasets_root: Path, out_dir: Path, n_processes: int,
 
 def preprocess_vctk(datasets_root: Path, out_dir: Path, n_processes: int, skip_existing: bool, hparams,
                        datasets_name: str, subfolders: str, no_alignments=True):
-    # TODO:Gather the input directories of VCTK
     dataset_root = datasets_root.joinpath(datasets_name)
     input_dir = dataset_root.joinpath(subfolders)
     print("Using data from:" + str(input_dir))
@@ -119,11 +121,13 @@ def preprocess_vctk(datasets_root: Path, out_dir: Path, n_processes: int, skip_e
     train_out_dir.mkdir(exist_ok=True)
     train_out_dir.joinpath("mels").mkdir(exist_ok=True)
     train_out_dir.joinpath("audio").mkdir(exist_ok=True)
+    train_out_dir.joinpath("mfccs").mkdir(exist_ok=True)
     
     dev_out_dir = out_dir.joinpath("dev")
     dev_out_dir.mkdir(exist_ok=True)
     dev_out_dir.joinpath("mels").mkdir(exist_ok=True)
     dev_out_dir.joinpath("audio").mkdir(exist_ok=True)
+    dev_out_dir.joinpath("mfccs").mkdir(exist_ok=True)
 
     # Preprocess the train dataset
     preprocess_data(train_input_fpaths, mode="train", out_dir=train_out_dir, skip_existing=skip_existing, hparams=hparams, no_alignments=no_alignments)
@@ -308,7 +312,7 @@ def split_on_silences(wav_fpath, words, end_times, hparams):
     return wavs, texts
 
 
-def process_utterance(wav: np.ndarray, text: str, out_dir: Path, basename: str,
+def process_utterance(raw_wav: np.ndarray, text: str, out_dir: Path, basename: str,
                       skip_existing: bool, hparams, trim_silence=True):
     ## FOR REFERENCE:
     # For you not to lose your head if you ever wish to change things here or implement your own
@@ -330,10 +334,8 @@ def process_utterance(wav: np.ndarray, text: str, out_dir: Path, basename: str,
     if skip_existing and mel_fpath.exists() and mfcc_fpath.exists() and wav_fpath.exists():
         return None
     
-    #TODO: add MFCC
-
     # Trim silence
-    wav = encoder.preprocess_wav(wav, normalize=False, trim_silence=trim_silence)
+    wav = encoder.preprocess_wav(raw_wav, normalize=False, trim_silence=trim_silence)
 
     # Skip utterances that are too short
     if len(wav) < hparams.utterance_min_duration * hparams.sample_rate:
@@ -346,13 +348,17 @@ def process_utterance(wav: np.ndarray, text: str, out_dir: Path, basename: str,
     # Skip utterances that are too long
     if mel_frames > hparams.max_mel_frames and hparams.clip_mels_length:
         return None
+    
+    # add MFCC
+    mfcc = get_mfcc(raw_wav, hparams.sample_rate, mean_signal_length=130000)
 
     # Write the spectrogram, embed and audio to disk
     np.save(mel_fpath, mel_spectrogram.T, allow_pickle=False)
     np.save(wav_fpath, wav, allow_pickle=False)
+    np.save(mfcc_fpath, mfcc, allow_pickle=False)
 
     # Return a tuple describing this training example
-    return wav_fpath.name, mel_fpath.name, "embed-%s.npy" % basename, len(wav), mel_frames, text
+    return wav_fpath.name, mel_fpath.name, "speaker-embed-%s.npy" % basename, len(wav), mel_frames, text, mfcc_fpath.name, "emotion-embed-%s.npy" % basename
 
 
 def embed_utterance(fpaths, encoder_model_fpath):
@@ -372,7 +378,7 @@ def create_embeddings(synthesizer_root: Path, encoder_model_fpath: Path, n_proce
     train_wav_dir = synthesizer_root.joinpath("train/audio")
     train_metadata_fpath = synthesizer_root.joinpath("train/train.txt")
     assert train_wav_dir.exists() and train_metadata_fpath.exists()
-    train_embed_dir = synthesizer_root.joinpath("train/embeds")
+    train_embed_dir = synthesizer_root.joinpath("train/speaker_embeds")
     train_embed_dir.mkdir(exist_ok=True)
 
     # Gather the input wave filepath and the target output embed filepath
@@ -390,7 +396,7 @@ def create_embeddings(synthesizer_root: Path, encoder_model_fpath: Path, n_proce
     dev_wav_dir = synthesizer_root.joinpath("dev/audio")
     dev_metadata_fpath = synthesizer_root.joinpath("dev/dev.txt")
     assert dev_wav_dir.exists() and dev_metadata_fpath.exists()
-    dev_embed_dir = synthesizer_root.joinpath("dev/embeds")
+    dev_embed_dir = synthesizer_root.joinpath("dev/speaker_embeds")
     dev_embed_dir.mkdir(exist_ok=True)
 
     # Gather the input wave filepath and the target output embed filepath
