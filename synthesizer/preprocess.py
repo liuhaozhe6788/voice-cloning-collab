@@ -361,34 +361,85 @@ def process_utterance(raw_wav: np.ndarray, text: str, out_dir: Path, basename: s
     return wav_fpath.name, mel_fpath.name, "speaker-embed-%s.npy" % basename, len(wav), mel_frames, text, mfcc_fpath.name, "emotion-embed-%s.npy" % basename
 
 
-def embed_utterance(fpaths, encoder_model_fpath):
+def embed_utterance(fpaths, encoder_model_fpaths, model):
+    wav_fpath, speaker_embed_fpath, mfcc_fpath, emotion_embed_fpath = fpaths
+    speaker_encoder_fpath, emotion_encoder_fpath = encoder_model_fpaths
+    wav = np.load(wav_fpath)
+
+    #### create speaker embeddings ####
     if not encoder.is_loaded():
-        encoder.load_model(encoder_model_fpath)
+        encoder.load_model(speaker_encoder_fpath)
 
     # Compute the speaker embedding of the utterance
-    wav_fpath, embed_fpath = fpaths
-    wav = np.load(wav_fpath)
     wav = encoder.preprocess_wav(wav)
     embed = encoder.embed_utterance(wav)
-    np.save(embed_fpath, embed, allow_pickle=False)
+    np.save(speaker_embed_fpath, embed, allow_pickle=False)
+
+    #### create emotion embeddings ####
+    x_source = np.array([np.load(mfcc_fpath)])
+    x_feat = model.infer(x_source, path=emotion_encoder_fpath)[0]
+    np.save(emotion_embed_fpath, x_feat, allow_pickle=False)
 
 
-def create_embeddings(synthesizer_root: Path, encoder_model_fpath: Path, n_processes: int):
+def create_embeddings(synthesizer_root: Path, speaker_encoder_model_fpath: Path, emotion_encoder_model_fpath:Path, n_processes: int):
+    """
+    @author: Jiaxin Ye
+    @contact: jiaxin-ye@foxmail.com
+    """
+    # -*- coding:UTF-8 -*-
+    import numpy as np
+    import os
+    import tensorflow as tf
+    from emotion_encoder.Model import TIMNET_Model
+    import argparse
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--lr', type=float, default=0.001)
+    parser.add_argument('--beta1', type=float, default=0.93)
+    parser.add_argument('--beta2', type=float, default=0.98)
+    parser.add_argument('--dropout', type=float, default=0.5)
+    parser.add_argument('--random_seed', type=int, default=46)
+    parser.add_argument('--activation', type=str, default='relu')
+    parser.add_argument('--filter_size', type=int, default=39)
+    parser.add_argument('--dilation_size', type=int, default=8)# If you want to train model on IEMOCAP, you should modify this parameter to 10 due to the long duration of speech signals.
+    parser.add_argument('--bidirection', type=bool, default=True)
+    parser.add_argument('--kernel_size', type=int, default=2)
+    parser.add_argument('--stack_size', type=int, default=1)
+    parser.add_argument('--split_fold', type=int, default=10)
+    parser.add_argument('--gpu', type=str, default='0')
+
+    args = parser.parse_args()
+        
+    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+    gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
+    config = tf.compat.v1.ConfigProto()
+    config.gpu_options.allow_growth=True 
+    session = tf.compat.v1.Session(config=config)
+    print(f"###gpus:{gpus}")
+
+    CLASS_LABELS = ("angry", "happy", "neutral", "sad")
+
+    model = TIMNET_Model(args=args, input_shape=(254, 39), class_label=CLASS_LABELS)
+    
     # create train embeddings
     train_wav_dir = synthesizer_root.joinpath("train/audio")
+    train_mfcc_dir = synthesizer_root.joinpath("train/mfccs")
     train_metadata_fpath = synthesizer_root.joinpath("train/train.txt")
     assert train_wav_dir.exists() and train_metadata_fpath.exists()
-    train_embed_dir = synthesizer_root.joinpath("train/speaker_embeds")
-    train_embed_dir.mkdir(exist_ok=True)
+    train_speaker_embed_dir = synthesizer_root.joinpath("train/speaker_embeds")
+    train_speaker_embed_dir.mkdir(exist_ok=True)
+    train_emotion_embed_dir = synthesizer_root.joinpath("train/emotion_embeds")
+    train_emotion_embed_dir.mkdir(exist_ok=True)
 
     # Gather the input wave filepath and the target output embed filepath
     with train_metadata_fpath.open("r") as metadata_file:
         metadata = [line.split("|") for line in metadata_file]
-        fpaths = [(train_wav_dir.joinpath(m[0]), train_embed_dir.joinpath(m[2])) for m in metadata]
+        fpaths = [(train_wav_dir.joinpath(m[0]), train_speaker_embed_dir.joinpath(m[2]), train_mfcc_dir[m[6]], train_emotion_embed_dir.joinpath(m[7])) for m in metadata]
 
     # TODO: improve on the multiprocessing, it's terrible. Disk I/O is the bottleneck here.
     # Embed the utterances in separate threads
-    func = partial(embed_utterance, encoder_model_fpath=encoder_model_fpath)
+    func = partial(embed_utterance, encoder_model_fpaths=[speaker_encoder_model_fpath, emotion_encoder_model_fpath], model=model)
     job = Pool(n_processes).imap(func, fpaths)
     list(tqdm(job, "Embedding", len(fpaths), unit="utterances"))
 
@@ -406,6 +457,6 @@ def create_embeddings(synthesizer_root: Path, encoder_model_fpath: Path, n_proce
 
     # TODO: improve on the multiprocessing, it's terrible. Disk I/O is the bottleneck here.
     # Embed the utterances in separate threads
-    func = partial(embed_utterance, encoder_model_fpath=encoder_model_fpath)
+    func = partial(embed_utterance, encoder_model_fpath=[speaker_encoder_model_fpath, emotion_encoder_model_fpath])
     job = Pool(n_processes).imap(func, fpaths)
     list(tqdm(job, "Embedding", len(fpaths), unit="utterances"))

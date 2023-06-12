@@ -64,10 +64,6 @@ CLASS_LABELS_dict = {"CASIA": CASIA_CLASS_LABELS,
                "INTERSECT": INTERSECT_CLASS_LABELS}
 CLASS_LABELS = CLASS_LABELS_dict[args.data]
 
-# batch=[]
-# for i in tqdm(range(1)):
-#     batch.append(get_mfcc("/home/liuhaozhe/signal_processing_projs/collected_audios/openvoice_official/pleasant.mp3", mean_signal_length=100000))
-# x_source=np.array(batch)
 model = TIMNET_Model(args=args, input_shape=x_source.shape[1:], class_label=CLASS_LABELS)
 x_feats = model.infer(x_source, path=args.test_path)
 
