@@ -79,7 +79,9 @@ def waveform_denoising(wav):
         _device = torch.device('cpu')
     model = master64().to(_device)
     noisy=torch.from_numpy(np.array([wav])).to(_device).float()
-    estimate = model(noisy)[0].cpu().detach().numpy()
+    estimate = model(noisy)
+    estimate = estimate * (1-hp.dry) + noisy * hp.dry
+    estimate = estimate[0].cpu().detach().numpy()
     return  nr.reduce_noise(np.squeeze(estimate), hp.sample_rate, prop_decrease=prop_decrease) 
 
 def get_dominant_freq(wav, name="fft"):
