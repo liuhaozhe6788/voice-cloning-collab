@@ -182,14 +182,13 @@ class TIMNET_Model(Common_Model):
         batch_size, feat_dim=x.shape[0],x.shape[2]
         x_feats=np.zeros(shape=(10,batch_size,feat_dim))
         # y_preds =np.zeros(shape=(10,batch_size,4))
-        self.create_model()
         for i in range(1, 11):
             weight_path=os.path.join(model_dir, str(self.args.split_fold)+"-fold_weights_best_"+str(i)+".hdf5")
             self.model.load_weights(weight_path)#+source_name+'_single_best.hdf5')
             # y_pred = self.model.predict(x)
             caps_layer_model = Model(inputs=self.model.input,
             outputs=self.model.get_layer(index=-2).output)
-            feature_source = caps_layer_model.predict(x, batch_size=128)
+            feature_source = caps_layer_model.predict(x, batch_size=128, verbose=0)
             x_feats[i-1]=feature_source
             # y_preds[i-1]=y_pred
         return np.mean(x_feats, axis=0)

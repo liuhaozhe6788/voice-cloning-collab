@@ -408,6 +408,8 @@ def create_embeddings(synthesizer_root: Path, speaker_encoder_model_fpath: Path,
     CLASS_LABELS = ("angry", "happy", "neutral", "sad")
 
     model = TIMNET_Model(args=args, input_shape=(254, 39), class_label=CLASS_LABELS)
+
+    model.create_model()
     
     # create train embeddings
     train_wav_dir = synthesizer_root.joinpath("train/audio")
@@ -424,12 +426,9 @@ def create_embeddings(synthesizer_root: Path, speaker_encoder_model_fpath: Path,
         metadata = [line.split("|") for line in metadata_file]
         fpaths = [(train_wav_dir.joinpath(m[0].strip()), train_speaker_embed_dir.joinpath(m[2].strip()), train_mfcc_dir.joinpath(m[6].strip()), train_emotion_embed_dir.joinpath(m[7].strip())) for m in metadata]
 
-    # TODO: improve on the multiprocessing, it's terrible. Disk I/O is the bottleneck here.
-    # Embed the utterances in separate threads
-    func = partial(embed_utterance, encoder_model_fpaths=[speaker_encoder_model_fpath, emotion_encoder_model_fpath], model=model)
-    job = Pool(n_processes).imap(func, fpaths)
-    list(tqdm(job, "Embedding", len(fpaths), unit="utterances"))
-
+    for fpath in tqdm(fpaths, desc="Embedding", unit="utterances"):
+        embed_utterance(fpath, encoder_model_fpaths=[speaker_encoder_model_fpath, emotion_encoder_model_fpath], model=model)
+    
     # create dev embeddings
     dev_wav_dir = synthesizer_root.joinpath("dev/audio")
     dev_metadata_fpath = synthesizer_root.joinpath("dev/dev.txt")
@@ -442,8 +441,5 @@ def create_embeddings(synthesizer_root: Path, speaker_encoder_model_fpath: Path,
         metadata = [line.split("|") for line in metadata_file]
         fpaths = [(dev_wav_dir.joinpath(m[0]), dev_embed_dir.joinpath(m[2])) for m in metadata]
 
-    # TODO: improve on the multiprocessing, it's terrible. Disk I/O is the bottleneck here.
-    # Embed the utterances in separate threads
-    func = partial(embed_utterance, encoder_model_fpath=[speaker_encoder_model_fpath, emotion_encoder_model_fpath])
-    job = Pool(n_processes).imap(func, fpaths)
-    list(tqdm(job, "Embedding", len(fpaths), unit="utterances"))
+    for fpath in tqdm(fpaths, desc="Embedding", unit="utterances"):
+        embed_utterance(fpath, encoder_model_fpaths=[speaker_encoder_model_fpath, emotion_encoder_model_fpath], model=model)
