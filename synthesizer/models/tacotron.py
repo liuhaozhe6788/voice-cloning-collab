@@ -458,7 +458,7 @@ class Tacotron(nn.Module):
             if t == 0:
                 first_stop_token = stop_tokens[0]      
             # Stop the loop when all stop tokens in batch exceed threshold compared with the 1st token and the sequence's length exceeds threshold
-            if (stop_tokens > first_stop_token * 1e4).all() and t > (20 * self.r): break
+            if (stop_tokens > first_stop_token * 4e3).all() and t > (20 * self.r): break
             # if (stop_tokens > 0.5).all() and t > (20 * self.r): break
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()

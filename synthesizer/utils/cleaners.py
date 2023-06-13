@@ -193,6 +193,8 @@ def add_breaks(text):
     text = text.replace(',', '. ')
     text = text.replace(';', '. ')
     text = text.replace(':', '. ')
+    text = text.replace('!', '. ')
+    text = text.replace('?', '. ')
     return text
 
 
