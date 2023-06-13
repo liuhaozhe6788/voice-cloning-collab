@@ -178,13 +178,13 @@ class TIMNET_Model(Common_Model):
         self.acc = avg_accuracy/self.args.split_fold
         return x_feats, y_labels
     
-    def infer(self, x, path):
+    def infer(self, x, model_dir):
         batch_size, feat_dim=x.shape[0],x.shape[2]
         x_feats=np.zeros(shape=(10,batch_size,feat_dim))
         # y_preds =np.zeros(shape=(10,batch_size,4))
         self.create_model()
         for i in range(1, 11):
-            weight_path=path+'/'+str(self.args.split_fold)+"-fold_weights_best_"+str(i)+".hdf5"
+            weight_path=os.path.join(model_dir, str(self.args.split_fold)+"-fold_weights_best_"+str(i)+".hdf5")
             self.model.load_weights(weight_path)#+source_name+'_single_best.hdf5')
             # y_pred = self.model.predict(x)
             caps_layer_model = Model(inputs=self.model.input,

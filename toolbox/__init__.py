@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import soundfile as sf
 
-from speaker_encoder import inference as encoder
+from speaker_encoder import inference as speaker_encoder
 from synthesizer.inference import Synthesizer
 from synthesizer.hparams import hparams
 from toolbox.ui import UI
@@ -165,10 +165,10 @@ class Toolbox:
         self.add_real_utterance(wav, name, speaker_name)
 
     def record(self):
-        wav = self.ui.record_one(encoder.sampling_rate, 5)
+        wav = self.ui.record_one(speaker_encoder.sampling_rate, 5)
         if wav is None:
             return
-        self.ui.play(wav, encoder.sampling_rate)
+        self.ui.play(wav, speaker_encoder.sampling_rate)
 
         speaker_name = "user01"
         name = speaker_name + "_rec_%05d" % np.random.randint(100000)
@@ -180,10 +180,10 @@ class Toolbox:
         self.ui.draw_spec(spec, "current")
 
         # Compute the embedding
-        if not encoder.is_loaded():
+        if not speaker_encoder.is_loaded():
             self.init_encoder()
-        encoder_wav = encoder.preprocess_wav(wav)
-        embed, partial_embeds, _ = encoder.embed_utterance(encoder_wav, return_partials=True)
+        encoder_wav = speaker_encoder.preprocess_wav(wav)
+        embed, partial_embeds, _ = speaker_encoder.embed_utterance(encoder_wav, return_partials=True)
 
         # Add the utterance
         utterance = Utterance(name, speaker_name, wav, spec, embed, partial_embeds, False)
@@ -272,7 +272,7 @@ class Toolbox:
 
         # Trim excessive silences
         if self.ui.trim_silences_checkbox.isChecked():
-            wav = encoder.preprocess_wav(wav)
+            wav = speaker_encoder.preprocess_wav(wav)
 
         # Play it
         wav = wav / np.abs(wav).max() * 0.5
@@ -304,10 +304,10 @@ class Toolbox:
 
         # Compute the embedding
         # TODO: this is problematic with different sampling rates, gotta fix it
-        if not encoder.is_loaded():
+        if not speaker_encoder.is_loaded():
             self.init_encoder()
-        encoder_wav = encoder.preprocess_wav(wav)
-        embed, partial_embeds, _ = encoder.embed_utterance(encoder_wav, return_partials=True)
+        encoder_wav = speaker_encoder.preprocess_wav(wav)
+        embed, partial_embeds, _ = speaker_encoder.embed_utterance(encoder_wav, return_partials=True)
 
         # Add the utterance
         name = speaker_name + "_gen_%05d" % np.random.randint(100000)
@@ -324,7 +324,7 @@ class Toolbox:
         self.ui.log("Loading the encoder %s... " % model_fpath)
         self.ui.set_loading(1)
         start = timer()
-        encoder.load_model(model_fpath)
+        speaker_encoder.load_model(model_fpath)
         self.ui.log("Done (%dms)." % int(1000 * (timer() - start)), "append")
         self.ui.set_loading(0)
 
