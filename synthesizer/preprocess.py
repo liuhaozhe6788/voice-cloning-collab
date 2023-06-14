@@ -199,7 +199,7 @@ def preprocess_data(wav_fpaths, mode, out_dir: Path, skip_existing: bool, hparam
     assert mode in ["train", "dev"]
     # Create a metadata file
     metadata_fpath = out_dir.joinpath(f"{mode}.txt")
-    metadata_file = metadata_fpath.open("a" if skip_existing else "w", encoding="utf-8")
+    metadata_file = metadata_fpath.open("a", encoding="utf-8")
     if no_alignments:
         for wav_fpath in tqdm(wav_fpaths, desc=mode):
             # Load the audio waveform
@@ -361,27 +361,30 @@ def process_utterance(raw_wav: np.ndarray, text: str, out_dir: Path, basename: s
     return wav_fpath.name, mel_fpath.name, "speaker-embed-%s.npy" % basename, len(wav), mel_frames, text, mfcc_fpath.name, "emotion-embed-%s.npy" % basename
 
 
-def embed_utterance(fpaths, encoder_model_fpaths, model):
-    wav_fpath, speaker_embed_fpath, mfcc_fpath, emotion_embed_fpath = fpaths
+def embed_utterance(fpath_batch, encoder_model_fpaths, model):
     speaker_encoder_fpath, emotion_encoder_fpath = encoder_model_fpaths
-    wav = np.load(wav_fpath)
-
-    #### create speaker embeddings ####
     if not speaker_encoder.is_loaded():
         speaker_encoder.load_model(speaker_encoder_fpath)
+    wavs = [speaker_encoder.preprocess_wav(np.load(fpaths[0])) for fpaths in fpath_batch]
+    speaker_embed_fpaths = [fpaths[1] for fpaths in fpath_batch]
+    mfccs = [np.load(fpaths[2]) for fpaths in fpath_batch]
+    emotion_embed_fpaths = [fpaths[3] for fpaths in fpath_batch]
 
+    #### create speaker embeddings ####
     # Compute the speaker embedding of the utterance
-    wav = speaker_encoder.preprocess_wav(wav)
-    embed = speaker_encoder.embed_utterance(wav)
-    np.save(speaker_embed_fpath, embed, allow_pickle=False)
+    for i, wav in enumerate(wavs):
+        embed = speaker_encoder.embed_utterance(wav)
+        np.save(speaker_embed_fpaths[i], embed, allow_pickle=False)
 
     #### create emotion embeddings ####
-    x_source = np.array([np.load(mfcc_fpath)])
-    x_feat = model.infer(x_source, model_dir=emotion_encoder_fpath)[0]
-    np.save(emotion_embed_fpath, x_feat, allow_pickle=False)
+    x_source = np.array(mfccs)
+    x_feats = model.infer(x_source, model_dir=emotion_encoder_fpath)
+
+    for i, emotion_embed_fpath in enumerate(emotion_embed_fpaths):
+        np.save(emotion_embed_fpath, x_feats[i], allow_pickle=False)
 
 
-def create_embeddings(synthesizer_root: Path, speaker_encoder_model_fpath: Path, emotion_encoder_model_fpath:Path, n_processes: int):
+def create_embeddings(synthesizer_root: Path, speaker_encoder_model_fpath: Path, emotion_encoder_model_fpath:Path, batch_size: int):
     """
     @author: Jiaxin Ye
     @contact: jiaxin-ye@foxmail.com
@@ -415,31 +418,63 @@ def create_embeddings(synthesizer_root: Path, speaker_encoder_model_fpath: Path,
     train_wav_dir = synthesizer_root.joinpath("train/audio")
     train_mfcc_dir = synthesizer_root.joinpath("train/mfccs")
     train_metadata_fpath = synthesizer_root.joinpath("train/train.txt")
-    assert train_wav_dir.exists() and train_metadata_fpath.exists()
     train_speaker_embed_dir = synthesizer_root.joinpath("train/speaker_embeds")
     train_speaker_embed_dir.mkdir(exist_ok=True)
     train_emotion_embed_dir = synthesizer_root.joinpath("train/emotion_embeds")
     train_emotion_embed_dir.mkdir(exist_ok=True)
+    assert train_wav_dir.exists() and train_mfcc_dir.exists() and train_metadata_fpath.exists() and train_speaker_embed_dir.exists() and train_emotion_embed_dir.exists()
 
     # Gather the input wave filepath and the target output embed filepath
     with train_metadata_fpath.open("r") as metadata_file:
         metadata = [line.split("|") for line in metadata_file]
-        fpaths = [(train_wav_dir.joinpath(m[0].strip()), train_speaker_embed_dir.joinpath(m[2].strip()), train_mfcc_dir.joinpath(m[6].strip()), train_emotion_embed_dir.joinpath(m[7].strip())) for m in metadata]
+        metadata_len = len(metadata)
+        iters=metadata_len//batch_size
+        residual_size=metadata_len-iters*batch_size
+        fpath_batches=[]
+        for iter in range(iters):
+            fpath_batch=[]
+            for i in range(batch_size):
+                m = metadata[iter*batch_size+i]
+                fpath_batch.append((train_wav_dir.joinpath(m[0].strip()), train_speaker_embed_dir.joinpath(m[2].strip()), train_mfcc_dir.joinpath(m[6].strip()), train_emotion_embed_dir.joinpath(m[7].strip())))
+            fpath_batches.append(fpath_batch)
+        fpath_batch=[]
+        for i in range(residual_size):
+            m = metadata[iter*batch_size+i]
+            fpath_batch.append((train_wav_dir.joinpath(m[0].strip()), train_speaker_embed_dir.joinpath(m[2].strip()), train_mfcc_dir.joinpath(m[6].strip()), train_emotion_embed_dir.joinpath(m[7].strip())))
+        fpath_batches.append(fpath_batch)
 
-    for fpath in tqdm(fpaths, desc="Embedding", unit="utterances"):
-        embed_utterance(fpath, encoder_model_fpaths=[speaker_encoder_model_fpath, emotion_encoder_model_fpath], model=model)
+    for fpath_batch in tqdm(fpath_batches, desc="Embedding", unit="utterance_batches"):
+        embed_utterance(fpath_batch, encoder_model_fpaths=[speaker_encoder_model_fpath, emotion_encoder_model_fpath], model=model)
     
     # create dev embeddings
     dev_wav_dir = synthesizer_root.joinpath("dev/audio")
+    dev_mfcc_dir = synthesizer_root.joinpath("dev/mfccs")
     dev_metadata_fpath = synthesizer_root.joinpath("dev/dev.txt")
-    assert dev_wav_dir.exists() and dev_metadata_fpath.exists()
-    dev_embed_dir = synthesizer_root.joinpath("dev/speaker_embeds")
-    dev_embed_dir.mkdir(exist_ok=True)
+    dev_speaker_embed_dir = synthesizer_root.joinpath("dev/speaker_embeds")
+    dev_speaker_embed_dir.mkdir(exist_ok=True)
+    dev_emotion_embed_dir = synthesizer_root.joinpath("dev/emotion_embeds")
+    dev_emotion_embed_dir.mkdir(exist_ok=True)
+    assert dev_wav_dir.exists() and dev_mfcc_dir.exists() and dev_metadata_fpath.exists() and dev_speaker_embed_dir.exists() and dev_emotion_embed_dir.exists()
 
     # Gather the input wave filepath and the target output embed filepath
     with dev_metadata_fpath.open("r") as metadata_file:
         metadata = [line.split("|") for line in metadata_file]
-        fpaths = [(dev_wav_dir.joinpath(m[0]), dev_embed_dir.joinpath(m[2])) for m in metadata]
+        metadata_len = len(metadata)
+        iters=metadata_len//batch_size
+        residual_size=metadata_len-iters*batch_size
+        fpath_batches=[]
+        iter=0
+        for iter in range(iters):
+            fpath_batch=[]
+            for i in range(batch_size):
+                m = metadata[iter*batch_size+i]
+                fpath_batch.append((dev_wav_dir.joinpath(m[0].strip()), dev_speaker_embed_dir.joinpath(m[2].strip()), dev_mfcc_dir.joinpath(m[6].strip()), dev_emotion_embed_dir.joinpath(m[7].strip())))
+            fpath_batches.append(fpath_batch)
+        fpath_batch=[]
+        for i in range(residual_size):
+            m = metadata[iter*batch_size+i]
+            fpath_batch.append((dev_wav_dir.joinpath(m[0].strip()), dev_speaker_embed_dir.joinpath(m[2].strip()), dev_mfcc_dir.joinpath(m[6].strip()), dev_emotion_embed_dir.joinpath(m[7].strip())))
+        fpath_batches.append(fpath_batch)
 
-    for fpath in tqdm(fpaths, desc="Embedding", unit="utterances"):
-        embed_utterance(fpath, encoder_model_fpaths=[speaker_encoder_model_fpath, emotion_encoder_model_fpath], model=model)
+    for fpath_batch in tqdm(fpath_batches, desc="Embedding", unit="utterance_batches"):
+        embed_utterance(fpath_batch, encoder_model_fpaths=[speaker_encoder_model_fpath, emotion_encoder_model_fpath], model=model)
