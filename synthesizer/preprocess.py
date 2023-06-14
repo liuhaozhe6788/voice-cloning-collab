@@ -195,7 +195,7 @@ def preprocess_data(wav_fpaths, mode, out_dir: Path, skip_existing: bool, hparam
     assert mode in ["train", "dev"]
     # Create a metadata file
     metadata_fpath = out_dir.joinpath(f"{mode}.txt")
-    metadata_file = metadata_fpath.open("a" if skip_existing else "w", encoding="utf-8")
+    metadata_file = metadata_fpath.open("a", encoding="utf-8")
     if no_alignments:
         for wav_fpath in tqdm(wav_fpaths, desc=mode):
             # Load the audio waveform
