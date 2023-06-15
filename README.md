@@ -121,7 +121,7 @@ python encoder_test_visualization.py <model_id> <datasets_root>
 The results are saved in dim_reduction_results/.
 
 ## Pretrained models
-You can download the pretrained model from [this](https://drive.google.com/drive/folders/19fhjjAbWq60zv1Bl6Y51snGbG1r5kaN2) and extract as saved_models/default
+You can download the pretrained model from [this](https://drive.google.com/drive/folders/19fhjjAbWq60zv1Bl6Y51snGbG1r5kaN2) and extract as saved_models/20230609
 ## What's new
 **2022.05.19：** We calculated GE2E loss in encoder with CUDA rather than originally-configured CPU. It speeds up the encoder training speed.<br>
 **2022.07.15：** We added Loss animation plot for synthesizer and vocoder.<br>
