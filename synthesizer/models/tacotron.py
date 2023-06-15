@@ -546,3 +546,20 @@ class EmotionTacotron(Tacotron):
         speech_embedding=self.concat_embed_proj(torch.cat((speaker_embedding,emotion_embedding), dim=1))
         return super().generate(x, speech_embedding, steps)
     
+    # def load(self, path, optimizer=None):
+    #     # Use device of model params as location for loaded state
+    #     device = "cpu"
+    #     checkpoint = torch.load(str(path), map_location=device)
+    #     checkpoint["model_state"]["concat_embed_proj.weight"] = nn.init.xavier_uniform_(self.concat_embed_proj.weight)
+    #     checkpoint["optimizer_state"]["state"][125] = {
+    #         'step': checkpoint["optimizer_state"]["state"][124]['step'],
+    #         'exp_avg': torch.zeros(self.concat_embed_proj.weight.shape),
+    #         'exp_avg_sq': torch.zeros(self.concat_embed_proj.weight.shape)            
+    #     }
+    #     checkpoint["optimizer_state"]["param_groups"][0]["params"].append(125)
+
+    #     self.load_state_dict(checkpoint["model_state"])
+
+    #     if "optimizer_state" in checkpoint and optimizer is not None:
+    #         optimizer.load_state_dict(checkpoint["optimizer_state"])
+    

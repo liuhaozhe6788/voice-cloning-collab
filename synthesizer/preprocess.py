@@ -439,7 +439,7 @@ def create_embeddings(synthesizer_root: Path, speaker_encoder_model_fpath: Path,
             fpath_batches.append(fpath_batch)
         fpath_batch=[]
         for i in range(residual_size):
-            m = metadata[iter*batch_size+i]
+            m = metadata[iters*batch_size+i]
             fpath_batch.append((train_wav_dir.joinpath(m[0].strip()), train_speaker_embed_dir.joinpath(m[2].strip()), train_mfcc_dir.joinpath(m[6].strip()), train_emotion_embed_dir.joinpath(m[7].strip())))
         fpath_batches.append(fpath_batch)
 
@@ -463,7 +463,6 @@ def create_embeddings(synthesizer_root: Path, speaker_encoder_model_fpath: Path,
         iters=metadata_len//batch_size
         residual_size=metadata_len-iters*batch_size
         fpath_batches=[]
-        iter=0
         for iter in range(iters):
             fpath_batch=[]
             for i in range(batch_size):
@@ -472,7 +471,7 @@ def create_embeddings(synthesizer_root: Path, speaker_encoder_model_fpath: Path,
             fpath_batches.append(fpath_batch)
         fpath_batch=[]
         for i in range(residual_size):
-            m = metadata[iter*batch_size+i]
+            m = metadata[iters*batch_size+i]
             fpath_batch.append((dev_wav_dir.joinpath(m[0].strip()), dev_speaker_embed_dir.joinpath(m[2].strip()), dev_mfcc_dir.joinpath(m[6].strip()), dev_emotion_embed_dir.joinpath(m[7].strip())))
         fpath_batches.append(fpath_batch)
 

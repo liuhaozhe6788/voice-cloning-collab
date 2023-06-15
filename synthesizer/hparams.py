@@ -55,10 +55,14 @@ hparams = HParams(
                         (2,  2e-4,  160_000,  12),   #
                         (2,  1e-4, 320_000,  12),   # r = reduction factor (# of mel frames
                         (2,  3e-5, 1280_000,  12),   #     synthesized for each decoder iteration)
-                        (2,  1e-5, 10_240_000,  32)],  # lr = learning rate
+                        (2,  1e-3, 7_600_000,  64),  # lr = learning rate
+                        (2,  5e-4, 7_640_000,  64),
+                        (2,  2e-4, 7_680_000,  64),
+                        (2,  1e-4, 7_840_000,  64),  
+                        (2,  3e-5, 8_160_000,  64)],
 
         tts_clip_grad_norm = 1.0,                   # clips the gradient norm to prevent explosion - set to None if not needed
-        tts_eval_interval = 100,                    # Number of steps between model evaluation (sample generation)
+        tts_eval_interval = 500,                    # Number of steps between model evaluation (sample generation)
                                                     # Set to -1 to generate after completing epoch, or 0 to disable
 
         tts_eval_num_samples = 1,                   # Makes this number of samples
@@ -84,6 +88,7 @@ hparams = HParams(
 
         ### SV2TTS
         speaker_embedding_size = 256,               # Dimension for the speaker embedding
+        emotion_embedding_size = 39,                # Dimension for the emotion embedding
         silence_min_duration_split = 0.4,           # Duration in seconds of a silence for an utterance to be split
         utterance_min_duration = 1,                 # Duration in seconds below which utterances are discarded
         )

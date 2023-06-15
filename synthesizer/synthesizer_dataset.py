@@ -6,17 +6,19 @@ from synthesizer.utils.text import text_to_sequence
 
 
 class SynthesizerDataset(Dataset):
-    def __init__(self, metadata_fpath: Path, mel_dir: Path, embed_dir: Path, hparams):
-        print("Using inputs from:\n\t%s\n\t%s\n\t%s" % (metadata_fpath, mel_dir, embed_dir))
+    def __init__(self, metadata_fpath: Path, mel_dir: Path, speaker_embed_dir: Path, emotion_embed_dir: Path, hparams):
+        print("Using inputs from:\n\t%s\n\t%s\n\t%s\n\t%s" % (metadata_fpath, mel_dir, speaker_embed_dir, emotion_embed_dir))
         
         with metadata_fpath.open("r") as metadata_file:
             metadata = [line.split("|") for line in metadata_file]
         
-        mel_fnames = [x[1] for x in metadata if int(x[4])]
+        mel_fnames = [x[1].strip() for x in metadata if int(x[4])]
         mel_fpaths = [mel_dir.joinpath(fname) for fname in mel_fnames]
-        embed_fnames = [x[2] for x in metadata if int(x[4])]
-        embed_fpaths = [embed_dir.joinpath(fname) for fname in embed_fnames]
-        self.samples_fpaths = list(zip(mel_fpaths, embed_fpaths))
+        speaker_embed_fnames = [x[2].strip() for x in metadata if int(x[4])]
+        speaker_embed_fpaths = [speaker_embed_dir.joinpath(fname) for fname in speaker_embed_fnames]
+        emotion_embed_fnames = [x[7].strip() for x in metadata if int(x[4])]
+        emotion_embed_fpaths = [emotion_embed_dir.joinpath(fname) for fname in emotion_embed_fnames]
+        self.samples_fpaths = list(zip(mel_fpaths, speaker_embed_fpaths, emotion_embed_fpaths)) ##TODO: double check
         self.samples_texts = [x[5].strip() for x in metadata if int(x[4])]
         self.metadata = metadata
         self.hparams = hparams
@@ -29,11 +31,12 @@ class SynthesizerDataset(Dataset):
         if index is list:
             index = index[0]
 
-        mel_path, embed_path = self.samples_fpaths[index]
+        mel_path, speaker_embed_path, emotion_embed_path = self.samples_fpaths[index]
         mel = np.load(mel_path).T.astype(np.float32)
         
-        # Load the embed
-        embed = np.load(embed_path)
+        # Load the embeds
+        speaker_embed = np.load(speaker_embed_path)
+        emotion_embed = np.load(emotion_embed_path)
 
         # Get the text and clean it
         text = text_to_sequence(self.samples_texts[index], self.hparams.tts_cleaner_names)
@@ -41,7 +44,7 @@ class SynthesizerDataset(Dataset):
         # Convert the list returned by text_to_sequence to a numpy array
         text = np.asarray(text).astype(np.int32)
 
-        return text, mel.astype(np.float32), embed.astype(np.float32), index
+        return text, mel.astype(np.float32), speaker_embed.astype(np.float32), emotion_embed.astype(np.float32), index
 
     def __len__(self):
         return len(self.samples_fpaths)
@@ -72,18 +75,22 @@ def collate_synthesizer(batch, r, hparams):
     mel = np.stack(mel)
 
     # Speaker embedding (SV2TTS)
-    embeds = np.array([x[2] for x in batch])
+    speaker_embeds = np.array([x[2] for x in batch])
+
+    # Emotion embedding
+    emotion_embeds = np.array([x[3] for x in batch])
 
     # Index (for vocoder preprocessing)
-    indices = [x[3] for x in batch]
+    indices = [x[4] for x in batch]
 
 
     # Convert all to tensor
     chars = torch.tensor(chars).long()
     mel = torch.tensor(mel)
-    embeds = torch.tensor(embeds)
+    speaker_embeds = torch.tensor(speaker_embeds)
+    emotion_embeds = torch.tensor(emotion_embeds)
 
-    return chars, mel, embeds, indices
+    return chars, mel, speaker_embeds, emotion_embeds, indices
 
 def pad1d(x, max_len, pad_value=0):
     return np.pad(x, (0, max_len - len(x)), mode="constant", constant_values=pad_value)

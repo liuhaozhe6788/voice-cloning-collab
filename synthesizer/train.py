@@ -9,7 +9,7 @@ from torch import optim
 from torch.utils.data import DataLoader
 
 from synthesizer import audio
-from synthesizer.models.tacotron import Tacotron
+from synthesizer.models.tacotron import EmotionTacotron
 from synthesizer.synthesizer_dataset import SynthesizerDataset, collate_synthesizer
 from synthesizer.utils import ValueWindow, data_parallel_workaround
 from synthesizer.utils.plot import plot_spectrogram
@@ -79,7 +79,7 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
 
     # Instantiate Tacotron Model
     print("\nInitialising Tacotron Model...\n")
-    model = Tacotron(embed_dims=hparams.tts_embed_dims,
+    model = EmotionTacotron(embed_dims=hparams.tts_embed_dims,
                      num_chars=len(symbols),
                      encoder_dims=hparams.tts_encoder_dims,
                      decoder_dims=hparams.tts_decoder_dims,
@@ -92,7 +92,8 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
                      num_highways=hparams.tts_num_highways,
                      dropout=hparams.tts_dropout,
                      stop_threshold=hparams.tts_stop_threshold,
-                     speaker_embedding_size=hparams.speaker_embedding_size).to(device)
+                     speaker_embedding_size=hparams.speaker_embedding_size,
+                     emotion_embedding_size=hparams.emotion_embedding_size).to(device)
 
     # Initialize the optimizer
     optimizer = optim.Adam(model.parameters())
@@ -124,19 +125,22 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
         print("\nLoading weights at %s" % weights_fpath)
         model.load(weights_fpath, optimizer)
         print("Tacotron weights loaded from step %d" % model.step)
+        # model.save(weights_fpath, optimizer)
         # losses = list(np.load(train_loss_file_path)) if exists(train_loss_file_path) else []
         # dev_losses = list(np.load(dev_loss_file_path)) if exists(dev_loss_file_path) else []
         
     # Initialize the dataset
     train_mel_dir = syn_dir.joinpath("train/mels")
-    train_embed_dir = syn_dir.joinpath("train/embeds")
+    train_speaker_embed_dir = syn_dir.joinpath("train/speaker_embeds")
+    train_emotion_embed_dir = syn_dir.joinpath("train/emotion_embeds")
     dev_mel_dir = syn_dir.joinpath("dev/mels")
-    dev_embed_dir = syn_dir.joinpath("dev/embeds")
-    train_dataset = SynthesizerDataset(train_metadata_fpath, train_mel_dir, train_embed_dir, hparams)
-    dev_dataset = SynthesizerDataset(dev_metadata_fpath, dev_mel_dir, dev_embed_dir, hparams)
+    dev_speaker_embed_dir = syn_dir.joinpath("dev/speaker_embeds")
+    dev_emotion_embed_dir = syn_dir.joinpath("dev/emotion_embeds")
+    train_dataset = SynthesizerDataset(train_metadata_fpath, train_mel_dir, train_speaker_embed_dir, train_emotion_embed_dir, hparams)
+    dev_dataset = SynthesizerDataset(dev_metadata_fpath, dev_mel_dir, dev_speaker_embed_dir, dev_emotion_embed_dir, hparams)
 
-    # best_loss_file_path = "synthesizer_loss/best_loss.npy"
-    # best_loss = np.load(best_loss_file_path)[0] if exists(best_loss_file_path) else 1000
+    best_loss_file_path = "synthesizer_loss/best_loss.npy"
+    best_loss = np.load(best_loss_file_path)[0] if exists(best_loss_file_path) else 1000
 
     # profiler = Profiler(summarize_every=10, disabled=False)
     for i, session in enumerate(hparams.tts_schedule):
@@ -176,7 +180,7 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
         epochs = np.ceil(training_steps / steps_per_epoch).astype(np.int32)
 
         for epoch in range(1, epochs+1):
-            for i, (texts, mels, embeds, idx) in enumerate(train_dataloader, 1):
+            for i, (texts, mels, speaker_embeds, emotion_embeds, idx) in enumerate(train_dataloader, 1):
                 start_time = time.time()
 
                 # profiler.tick("Blocking, waiting for batch (threaded)")
@@ -184,11 +188,12 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
                 # Generate stop tokens for training
                 stop = torch.ones(mels.shape[0], mels.shape[2])
                 for j, k in enumerate(idx):
-                    stop[j, :int(train_dataset.metadata[k][4])-1] = 0
+                    stop[j, :int(train_dataset.metadata[k][4])-1] = 0  
 
                 texts = texts.to(device)
                 mels = mels.to(device)
-                embeds = embeds.to(device)
+                speaker_embeds = speaker_embeds.to(device)
+                emotion_embeds = emotion_embeds.to(device)
                 stop = stop.to(device)
 
                 # sync(device)
@@ -199,7 +204,7 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
                 # if device.type == "cuda" and torch.cuda.device_count() > 1:
                 #     m1_hat, m2_hat, attention, stop_pred = data_parallel_workaround(model, texts, mels, embeds)
                 # else:
-                m1_hat, m2_hat, attention, stop_pred = model(texts, mels, embeds)
+                m1_hat, m2_hat, attention, stop_pred = model(texts, mels, speaker_embeds, emotion_embeds)
                 # sync(device)
                 # profiler.tick("Forward pass")
 
@@ -263,59 +268,38 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
 
                     # Must save latest optimizer state to ensure that resuming training
                     # doesn't produce artifacts
-                    # best_loss = dev_loss
-                    # np.save(best_loss_file_path, np.array([best_loss]))
-                    model.save(weights_fpath, optimizer)
+                    if best_loss > dev_loss:
+                        best_loss = dev_loss
+                        np.save(best_loss_file_path, np.array([best_loss]))
+                        model.save(weights_fpath, optimizer)
 
                 # Evaluate model to generate dev samples
-                # epoch_eval = hparams.tts_eval_interval == -1 and i == steps_per_epoch  # If epoch is done
-                # step_eval = hparams.tts_eval_interval > 0 and i % hparams.tts_eval_interval == 0  # Every N steps
-                # if step_eval:
+                epoch_eval = hparams.tts_eval_interval == -1 and i == steps_per_epoch  # If epoch is done
+                step_eval = hparams.tts_eval_interval > 0 and i % hparams.tts_eval_interval == 0  # Every N steps
+                if step_eval:
                     # generate train samples
-                    # for sample_idx in range(hparams.tts_eval_num_samples):
-                    #     # At most, generate samples equal to number in the batch
-                    #     if sample_idx + 1 <= len(texts):
-                    #         # Remove padding from mels using frame length in metadata
-                    #         mel_length = int(train_dataset.metadata[idx[sample_idx]][4])
-                    #         mel_prediction = np_now(m2_hat[sample_idx]).T[:mel_length]
-                    #         target_spectrogram = np_now(mels[sample_idx]).T[:mel_length]
-                    #         attention_len = mel_length // model.r
+                    for sample_idx in range(hparams.tts_eval_num_samples):
+                        # At most, generate samples equal to number in the batch
+                        if sample_idx + 1 <= len(texts):
+                            # Remove padding from mels using frame length in metadata
+                            mel_length = int(train_dataset.metadata[idx[sample_idx]][4])
+                            mel_prediction = np_now(m2_hat[sample_idx]).T[:mel_length]
+                            target_spectrogram = np_now(mels[sample_idx]).T[:mel_length]
+                            attention_len = mel_length // model.r
 
-                    #         eval_model(attention=np_now(attention[sample_idx][:, :attention_len]),
-                    #                    mel_prediction=mel_prediction,
-                    #                    target_spectrogram=target_spectrogram,
-                    #                    input_seq=np_now(texts[sample_idx]),
-                    #                    step=step,
-                    #                    plot_dir=plot_dir,
-                    #                    mel_output_dir=mel_output_dir,
-                    #                    wav_dir=wav_dir,
-                    #                    sample_num=sample_idx + 1,
-                    #                    loss=loss,
-                    #                    hparams=hparams,
-                    #                    if_dev="train")
+                            eval_model(attention=np_now(attention[sample_idx][:, :attention_len]),
+                                        mel_prediction=mel_prediction,
+                                        target_spectrogram=target_spectrogram,
+                                        input_seq=np_now(texts[sample_idx]),
+                                        step=step,
+                                        plot_dir=plot_dir,
+                                        mel_output_dir=mel_output_dir,
+                                        wav_dir=wav_dir,
+                                        sample_num=sample_idx + 1,
+                                        loss=loss,
+                                        hparams=hparams,
+                                        if_dev="train")
 
-                    # generate dev samples
-                    # for sample_idx in range(hparams.tts_eval_num_samples):
-                    #     # At most, generate samples equal to number in the batch
-                    #     if sample_idx + 1 <= len(dev_input_texts):
-                    #         # Remove padding from mels using frame length in metadata
-                    #         mel_length = int(dev_dataset.metadata[dev_idx[sample_idx]][4])
-                    #         dev_mel_prediction = np_now(dev_m2_hat[sample_idx]).T[:mel_length]
-                    #         target_spectrogram = np_now(dev_target_mels[sample_idx]).T[:mel_length]
-                    #         attention_len = mel_length // model.r
-
-                    #         eval_model(attention=np_now(dev_attention[sample_idx][:, :attention_len]),
-                    #                    mel_prediction=dev_mel_prediction,
-                    #                    target_spectrogram=target_spectrogram,
-                    #                    input_seq=np_now(dev_input_texts[sample_idx]),
-                    #                    step=step,
-                    #                    plot_dir=plot_dir,
-                    #                    mel_output_dir=mel_output_dir,
-                    #                    wav_dir=wav_dir,
-                    #                    sample_num=sample_idx + 1,
-                    #                    loss=dev_loss,
-                    #                    hparams=hparams,
-                    #                    if_dev="dev")
 
                 # Break out of loop to update training schedule
                 if step >= max_step:
@@ -353,8 +337,8 @@ def validate(dataset, model, collate_fn):
     model.eval()
     with torch.no_grad():
         losses = []
-        dataloader = DataLoader(dataset, 32, num_workers=4, shuffle=False, collate_fn=collate_fn)
-        for i, (texts, mels, embeds, idx) in enumerate(dataloader, 1):
+        dataloader = DataLoader(dataset, 64, num_workers=4, shuffle=False, collate_fn=collate_fn)
+        for i, (texts, mels, speaker_embeds, emotion_embeds, idx) in enumerate(dataloader, 1):
             # Generate stop tokens for training
             stop = torch.ones(mels.shape[0], mels.shape[2])
             for j, k in enumerate(idx):
@@ -362,7 +346,8 @@ def validate(dataset, model, collate_fn):
 
             texts = texts.cuda()
             mels = mels.cuda()
-            embeds = embeds.cuda()
+            speaker_embeds = speaker_embeds.cuda()
+            emotion_embeds = emotion_embeds.cuda()
             stop = stop.cuda()
 
             # Forward pass
@@ -370,7 +355,7 @@ def validate(dataset, model, collate_fn):
             # if device.type == "cuda" and torch.cuda.device_count() > 1:
             #     m1_hat, m2_hat, attention, stop_pred = data_parallel_workaround(model, texts, mels, embeds)
             # else:
-            m1_hat, m2_hat, attention, stop_pred = model(texts, mels, embeds)
+            m1_hat, m2_hat, attention, stop_pred = model(texts, mels, speaker_embeds, emotion_embeds)
 
             # Backward pass
             m1_loss = F.mse_loss(m1_hat, mels) + F.l1_loss(m1_hat, mels)
@@ -379,6 +364,7 @@ def validate(dataset, model, collate_fn):
 
             loss = m1_loss + m2_loss + stop_loss
             losses.append(loss.item())
+        
     model.train()
     torch.cuda.empty_cache()
     return sum(losses) / len(losses)
