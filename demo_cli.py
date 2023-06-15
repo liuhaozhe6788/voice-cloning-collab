@@ -235,16 +235,8 @@ if __name__ == '__main__':
     texts = preprocess_text(text)
     print(f"the list of inputs texts:\n{texts}")
 
-    # embeds = [embed] * len(texts)
-    specs = []
-    alignments = []
-    stop_tokens = []
-    for i, text in enumerate(texts):
-        print(f"No.{i} sequence is {text}")
-        spec, align, stop_token = synthesizer.synthesize_spectrograms([text], [embed], require_visualization=True)
-        specs.append(spec[0])
-        alignments.append(align[0])
-        stop_tokens.append(stop_token[0])
+    embeds = [embed] * len(texts)
+    specs, alignments, stop_tokens = synthesizer.synthesize_spectrograms(texts, embeds, require_visualization=True)
 
     breaks = [spec.shape[1] for spec in specs]
     spec = np.concatenate(specs, axis=1)
@@ -253,9 +245,9 @@ if __name__ == '__main__':
     ## Save synthesizer visualization results
     if not os.path.exists("syn_results"):
         os.mkdir("syn_results")
-    # save_attention(alignments, "syn_results/attention")
-    # save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
-    # save_spectrogram(spec, "syn_results/mel")
+    save_attention_multiple(alignments, "syn_results/attention")
+    save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
+    save_spectrogram(spec, "syn_results/mel")
     print("Created the mel spectrogram")
 
     end_syn = time.time()
@@ -273,7 +265,7 @@ if __name__ == '__main__':
     # Synthesizing the waveform is fairly straightforward. Remember that the longer the
     # spectrogram, the more time-efficient the vocoder.
     if not args.griffin_lim:
-        wav = vocoder.infer_waveform(spec)
+        wav = vocoder.infer_waveform(spec, target=4000, overlap=400)
     else:
         wav = Synthesizer.griffin_lim(spec)
 
