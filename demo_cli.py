@@ -274,16 +274,10 @@ if __name__ == '__main__':
         texts = preprocess_text(text)
         print(f"the list of inputs texts:\n{texts}")
 
-        # embeds = [embed] * len(texts)
-        specs = []
-        alignments = []
-        stop_tokens = []
-        for i, text in enumerate(texts):
-            print(f"No.{i} sequence is {text}")
-            spec, align, stop_token = synthesizer.synthesize_spectrograms([text], [speaker_embed], [emotion_embed], require_visualization=True)
-            specs.append(spec[0])
-            alignments.append(align[0])
-            stop_tokens.append(stop_token[0])
+        speaker_embeds = [speaker_embed] * len(texts)
+        emotion_embeds = [emotion_embed] * len(texts)
+        specs, alignments, stop_tokens = synthesizer.synthesize_spectrograms(texts, speaker_embeds, emotion_embeds, require_visualization=True)
+
 
         breaks = [spec.shape[1] for spec in specs]
         spec = np.concatenate(specs, axis=1)
@@ -312,7 +306,7 @@ if __name__ == '__main__':
         # Synthesizing the waveform is fairly straightforward. Remember that the longer the
         # spectrogram, the more time-efficient the vocoder.
         if not args.griffin_lim:
-            wav = vocoder.infer_waveform(spec)
+            wav = vocoder.infer_waveform(spec, target=4000, overlap=400)
         else:
             wav = Synthesizer.griffin_lim(spec)
 

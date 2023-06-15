@@ -268,10 +268,10 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
 
                     # Must save latest optimizer state to ensure that resuming training
                     # doesn't produce artifacts
-                    if best_loss > dev_loss:
-                        best_loss = dev_loss
-                        np.save(best_loss_file_path, np.array([best_loss]))
-                        model.save(weights_fpath, optimizer)
+                    # if best_loss > dev_loss:
+                    best_loss = dev_loss
+                    np.save(best_loss_file_path, np.array([best_loss]))
+                    model.save(weights_fpath, optimizer)
 
                 # Evaluate model to generate dev samples
                 epoch_eval = hparams.tts_eval_interval == -1 and i == steps_per_epoch  # If epoch is done
