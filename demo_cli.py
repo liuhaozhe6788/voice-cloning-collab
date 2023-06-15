@@ -185,11 +185,11 @@ if __name__ == '__main__':
     # in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
 
     in_fpaths = [
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/VALLE/anger_pt.wav",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/VALLE/amused_pt.wav",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/VALLE/disgust_pt.wav",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/VALLE/neutral_pt.wav",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/VALLE/sleepiness_pt.wav"
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/anger_pt.wav",
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/amused_pt.wav",
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/disgust_pt.wav",
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/neutral_pt.wav",
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/sleepiness_pt.wav"
     ]
     for in_fpath in in_fpaths:
 
