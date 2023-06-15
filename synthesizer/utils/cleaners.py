@@ -213,13 +213,23 @@ def transliteration_cleaners(text):
     return text
 
 
-def english_cleaners(text):
-    """Pipeline for English text, including number and abbreviation expansion."""
+def english_cleaners_predict(text):
+    """Pipeline for English text, including number and abbreviation expansion for prediction."""
+    text = convert_to_ascii(text)
     text = replace_special_char(text)
     text = expand_abbreviations(text)
     text = letter2pronunciation(text)
     text = lowercase(text)
     text = expand_numbers(text)
     # text = split_conj(text) 
+    text = collapse_whitespace(text)
+    return text
+
+def english_cleaners(text):
+    """Pipeline for English text, including number and abbreviation expansion for training preprocessing."""
+    text = convert_to_ascii(text)
+    text = lowercase(text)
+    text = expand_numbers(text)
+    text = expand_abbreviations(text)
     text = collapse_whitespace(text)
     return text

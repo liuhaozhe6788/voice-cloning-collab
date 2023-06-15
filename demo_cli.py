@@ -45,9 +45,9 @@ if __name__ == '__main__':
     import encoder.inference
     import encoder.params_data 
     from synthesizer.inference import Synthesizer
-    from synthesizer.utils.cleaners import add_breaks, english_cleaners
+    from synthesizer.utils.cleaners import add_breaks, english_cleaners_predict
     from vocoder import inference as vocoder
-    from vocoder.display import save_attention, save_spectrogram, save_stop_tokens
+    from vocoder.display import save_attention_multiple, save_spectrogram, save_stop_tokens
     from utils.argutils import print_args
     from utils.default_models import ensure_default_models
     from speed_changer.fixSpeed import *
@@ -228,7 +228,7 @@ if __name__ == '__main__':
     # The synthesizer works in batch, so you need to put your data in a list or numpy array
     def preprocess_text(text):
         text = add_breaks(text) 
-        text = english_cleaners(text)
+        text = english_cleaners_predict(text)
         texts = [i.text.strip() for i in nlp(text).sents]  # split paragraph to sentences
         return texts
 

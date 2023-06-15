@@ -82,8 +82,15 @@ def time_since(started) :
     else :
         return f'{m}m {s}s'
 
-
 def save_attention(attn, path):
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure(figsize=(12, 6))
+    plt.imshow(attn.T, interpolation='nearest', aspect='auto')
+    fig.savefig(f'{path}.png', bbox_inches='tight')
+    plt.close(fig)
+
+def save_attention_multiple(attn, path):
     import matplotlib.pyplot as plt
 
     num_plots = len(attn)
