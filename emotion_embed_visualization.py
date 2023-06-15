@@ -13,8 +13,8 @@ from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--test_path', type=str, default='./emotion_encoder/Test_Models/INTERSECT_46_dilation_8_dropout_05')
-parser.add_argument('--data', type=str, default='CASIA')
+parser.add_argument('--test_path', type=str, default='saved_models/default/INTERSECT_46_dilation_8_dropout_05')
+parser.add_argument('--data', type=str, default='INTERSECT')
 parser.add_argument('--lr', type=float, default=0.001)
 parser.add_argument('--beta1', type=float, default=0.93)
 parser.add_argument('--beta2', type=float, default=0.98)
@@ -65,7 +65,8 @@ CLASS_LABELS_dict = {"CASIA": CASIA_CLASS_LABELS,
 CLASS_LABELS = CLASS_LABELS_dict[args.data]
 
 model = TIMNET_Model(args=args, input_shape=x_source.shape[1:], class_label=CLASS_LABELS)
-x_feats = model.infer(x_source, path=args.test_path)
+model.create_model()
+x_feats = model.infer(x_source, model_dir=args.test_path)
 
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
