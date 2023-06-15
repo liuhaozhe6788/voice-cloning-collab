@@ -11,7 +11,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument("--run_id", type=str, default="default", help= \
+    parser.add_argument("--run_id", type=str, default="20230609", help= \
     "Name for this model. By default, training outputs will be stored to saved_models/<run_id>/. If a model state "
     "from the same run ID was previously saved, the training will restart from there. Pass -f to overwrite saved "
     "states and restart from scratch.")
