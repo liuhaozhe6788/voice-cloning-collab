@@ -150,7 +150,7 @@ class WaveRNN(nn.Module):
         x = F.relu(self.fc2(x))
         return self.fc3(x)
 
-    def generate(self, mels, batched, target, overlap, mu_law, progress_callback=None):
+    def generate(self, mels, batched, target, overlap, mu_law, progress_callback=None,crossfade=True):
         mu_law = mu_law if self.mode == 'RAW' else False
         progress_callback = progress_callback or self.gen_display
 
@@ -240,7 +240,7 @@ class WaveRNN(nn.Module):
         output = output.astype(np.float64)
         
         if batched:
-            output = self.xfade_and_unfold(output, target, overlap)
+            output = self.xfade_and_unfold(output, target, overlap, crossfade=crossfade)
         else:
             output = output[0]
 
@@ -340,7 +340,7 @@ class WaveRNN(nn.Module):
 
         return folded
 
-    def xfade_and_unfold(self, y, target, overlap):
+    def xfade_and_unfold(self, y, target, overlap, crossfade=True):
 
         ''' Applies a crossfade and unfolds into a 1d array.
 
@@ -382,9 +382,12 @@ class WaveRNN(nn.Module):
         silence = np.zeros((silence_len), dtype=np.float64)
 
         # Equal power crossfade
-        t = np.linspace(-1, 1, fade_len, dtype=np.float64)
-        fade_in = np.sqrt(0.5 * (1 + t))
-        fade_out = np.sqrt(0.5 * (1 - t))
+        if crossfade:
+            t = np.linspace(-1, 1, fade_len, dtype=np.float64)
+            fade_in = np.sqrt(0.5 * (1 + t))
+            fade_out = np.sqrt(0.5 * (1 - t))
+        else:
+            fade_in = fade_out = np.ones((fade_len), dtype=np.float64)
 
         # Concat the silence to the fades
         fade_in = np.concatenate([silence, fade_in])

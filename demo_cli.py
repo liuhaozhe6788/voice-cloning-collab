@@ -245,9 +245,9 @@ if __name__ == '__main__':
     ## Save synthesizer visualization results
     if not os.path.exists("syn_results"):
         os.mkdir("syn_results")
-    save_attention_multiple(alignments, "syn_results/attention")
-    save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
-    save_spectrogram(spec, "syn_results/mel")
+    # save_attention_multiple(alignments, "syn_results/attention")
+    # save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
+    # save_spectrogram(spec, "syn_results/mel")
     print("Created the mel spectrogram")
 
     end_syn = time.time()
@@ -265,7 +265,7 @@ if __name__ == '__main__':
     # Synthesizing the waveform is fairly straightforward. Remember that the longer the
     # spectrogram, the more time-efficient the vocoder.
     if not args.griffin_lim:
-        wav = vocoder.infer_waveform(spec, target=4000, overlap=400)
+        wav = vocoder.infer_waveform(spec, target=vocoder.hp.voc_target, overlap=vocoder.hp.voc_overlap, crossfade=vocoder.hp.is_crossfade) 
     else:
         wav = Synthesizer.griffin_lim(spec)
 
