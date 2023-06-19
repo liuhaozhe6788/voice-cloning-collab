@@ -40,8 +40,9 @@ voc_seq_len = hop_length * 5        # must be a multiple of hop_length
 
 # Generating / Synthesizing
 voc_gen_batched = True              # very fast (realtime+) single utterance batched generation
-voc_target = 8000                   # target number of samples to be generated in each batch entry
+voc_target = 4000                   # target number of samples to be generated in each batch entry
 voc_overlap = 400                   # number of samples for crossfading between batches
+is_crossfade = True                 # crossfading or not
 
 # Output Noise Reduce
 prop_decrease_low_freq = 0.6        # prop decrease for low dominant frequency
