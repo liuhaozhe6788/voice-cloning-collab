@@ -188,7 +188,7 @@ class TIMNET_Model(Common_Model):
             # y_pred = self.model.predict(x)
             caps_layer_model = Model(inputs=self.model.input,
             outputs=self.model.get_layer(index=-2).output)
-            feature_source = caps_layer_model.predict(x, batch_size=128, verbose=0)
+            feature_source = caps_layer_model.predict(x, batch_size=128)
             x_feats[i-1]=feature_source
             # y_preds[i-1]=y_pred
         return np.mean(x_feats, axis=0)

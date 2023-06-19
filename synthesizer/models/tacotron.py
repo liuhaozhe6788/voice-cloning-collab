@@ -533,18 +533,24 @@ class EmotionTacotron(Tacotron):
                  dropout, stop_threshold, speaker_embedding_size)
         self.emotion_embedding_size=emotion_embedding_size
         self.concat_embed_proj = nn.Linear(speaker_embedding_size+self.emotion_embedding_size, speaker_embedding_size, bias=False)
+        self.p = dropout
 
     def forward(self, x, m, speaker_embedding, emotion_embedding):
         # Concat speaker embedding and emotion embedding
-        speech_embedding=self.concat_embed_proj(torch.cat((speaker_embedding,emotion_embedding), dim=1))
-        return super().forward(x, m, speech_embedding)
+        embed=self.concat_embed_proj(torch.cat((speaker_embedding,emotion_embedding), dim=1))
+        embed = F.relu(embed)
+        embed = F.dropout(embed, self.p, self.training)
+
+        return super().forward(x, m, embed)
 
     def generate(self, x, speaker_embedding=None, emotion_embedding=None, steps=2000):
         self.eval()
 
         # Concat speaker embedding and emotion embedding
-        speech_embedding=self.concat_embed_proj(torch.cat((speaker_embedding,emotion_embedding), dim=1))
-        return super().generate(x, speech_embedding, steps)
+        embed=self.concat_embed_proj(torch.cat((speaker_embedding,emotion_embedding), dim=1))
+        embed = F.relu(embed)
+        embed = F.dropout(embed, self.p, self.training)
+        return super().generate(x, embed, steps)
     
     # def load(self, path, optimizer=None):
     #     # Use device of model params as location for loaded state

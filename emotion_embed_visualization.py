@@ -14,7 +14,7 @@ from tqdm import tqdm
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--test_path', type=str, default='saved_models/default/INTERSECT_46_dilation_8_dropout_05')
-parser.add_argument('--data', type=str, default='INTERSECT')
+parser.add_argument('--data', type=str, default='ESD')
 parser.add_argument('--lr', type=float, default=0.001)
 parser.add_argument('--beta1', type=float, default=0.93)
 parser.add_argument('--beta2', type=float, default=0.98)
@@ -33,7 +33,7 @@ args = parser.parse_args()
 
 if args.data=="IEMOCAP" and args.dilation_size!=10:
     args.dilation_size = 10
-elif args.data=="INTERSECT":
+else:
     args.dilation_size = 8
     
 os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
@@ -55,6 +55,7 @@ RAVDE_CLASS_LABELS = ("angry", "calm", "disgust", "fear", "happy", "neutral","sa
 IEMOCAP_CLASS_LABELS = ("angry", "happy", "neutral", "sad")#iemocap
 EMOVO_CLASS_LABELS = ("angry", "disgust", "fear", "happy","neutral","sad","surprise")#emovo
 INTERSECT_CLASS_LABELS = ("angry", "happy", "neutral", "sad")
+ESD_CLASS_LABELS = ("angry", "happy", "neutral", "sad", "surprise")
 CLASS_LABELS_dict = {"CASIA": CASIA_CLASS_LABELS,
                "EMODB": EMODB_CLASS_LABELS,
                "EMOVO": EMOVO_CLASS_LABELS,
@@ -62,7 +63,7 @@ CLASS_LABELS_dict = {"CASIA": CASIA_CLASS_LABELS,
                "RAVDE": RAVDE_CLASS_LABELS,
                "SAVEE": SAVEE_CLASS_LABELS,
                "INTERSECT": INTERSECT_CLASS_LABELS}
-CLASS_LABELS = CLASS_LABELS_dict[args.data]
+CLASS_LABELS = CLASS_LABELS_dict["INTERSECT"]
 
 model = TIMNET_Model(args=args, input_shape=x_source.shape[1:], class_label=CLASS_LABELS)
 model.create_model()
@@ -84,7 +85,7 @@ print(tsne_result.shape)
 # Plot the result of our TSNE with the label color coded
 # A lot of the stuff here is about making the plot look pretty and not TSNE
 tsne_result_df = pd.DataFrame({'x': tsne_result[:,0], 'y': tsne_result[:,1], 'label': y_source})
-tsne_result_df["label"]=tsne_result_df["label"].apply(lambda x:INTERSECT_CLASS_LABELS[x])
+tsne_result_df["label"]=tsne_result_df["label"].apply(lambda x:ESD_CLASS_LABELS[x])
 fig, ax = plt.subplots(1)
 sns.scatterplot(x='x', y='y', hue='label', data=tsne_result_df, ax=ax,s=40)
 lim = (tsne_result.min()-5, tsne_result.max()+5)
@@ -92,5 +93,5 @@ ax.set_xlim(lim)
 ax.set_ylim(lim)
 ax.set_aspect('equal')
 ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0)
-ax.set_title('T-NSE visualization of emotion embeddings')
+ax.set_title('T-NSE visualization of emotion speech dataset')
 plt.savefig("t-nse.png", dpi=500)

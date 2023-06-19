@@ -1,7 +1,7 @@
 import argparse
 from ctypes import alignment
 import os
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from pathlib import Path
 import spacy
 import time
@@ -189,7 +189,12 @@ if __name__ == '__main__':
         "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/amused_pt.wav",
         "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/disgust_pt.wav",
         "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/neutral_pt.wav",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/sleepiness_pt.wav"
+        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/sleepiness_pt.wav",
+        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Angry/evaluation/0016_000351.wav", # angry
+        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Happy/test/0016_000721.wav", # happy 
+        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Neutral/train/0016_000051.wav", # neutral
+        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Sad/evaluation/0016_001052.wav", # sad
+        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Surprise/test/0016_001422.wav" # surprise
     ]
     for in_fpath in in_fpaths:
 
