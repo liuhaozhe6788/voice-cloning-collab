@@ -182,7 +182,7 @@ class TIMNET_Model(Common_Model):
         batch_size, feat_dim=x.shape[0],x.shape[2]
         x_feats=np.zeros(shape=(10,batch_size,feat_dim))
         # y_preds =np.zeros(shape=(10,batch_size,4))
-        for i in range(1, 11):
+        for i in range(1, self.args.split_fold+1):
             weight_path=os.path.join(model_dir, str(self.args.split_fold)+"-fold_weights_best_"+str(i)+".hdf5")
             self.model.load_weights(weight_path)#+source_name+'_single_best.hdf5')
             # y_pred = self.model.predict(x)

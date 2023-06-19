@@ -13,12 +13,12 @@ from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--test_path', type=str, default='saved_models/default/INTERSECT_46_dilation_8_dropout_05')
-parser.add_argument('--data', type=str, default='ESD')
+parser.add_argument('--test_path', type=str, default='saved_models/default/INTERSECT_46_dilation_8_dropout_05_add_esd')
+parser.add_argument('--data', type=str, default='ESD_test')
 parser.add_argument('--lr', type=float, default=0.001)
 parser.add_argument('--beta1', type=float, default=0.93)
 parser.add_argument('--beta2', type=float, default=0.98)
-parser.add_argument('--dropout', type=float, default=0.1)
+parser.add_argument('--dropout', type=float, default=0.5)
 parser.add_argument('--random_seed', type=int, default=46)
 parser.add_argument('--activation', type=str, default='relu')
 parser.add_argument('--filter_size', type=int, default=39)
@@ -54,7 +54,7 @@ SAVEE_CLASS_LABELS = ("angry","disgust", "fear", "happy", "neutral", "sad", "sur
 RAVDE_CLASS_LABELS = ("angry", "calm", "disgust", "fear", "happy", "neutral","sad","surprise")#rav
 IEMOCAP_CLASS_LABELS = ("angry", "happy", "neutral", "sad")#iemocap
 EMOVO_CLASS_LABELS = ("angry", "disgust", "fear", "happy","neutral","sad","surprise")#emovo
-INTERSECT_CLASS_LABELS = ("angry", "happy", "neutral", "sad")
+INTERSECT_CLASS_LABELS = ("angry", "happy", "neutral", "sad", "surprise")
 ESD_CLASS_LABELS = ("angry", "happy", "neutral", "sad", "surprise")
 CLASS_LABELS_dict = {"CASIA": CASIA_CLASS_LABELS,
                "EMODB": EMODB_CLASS_LABELS,
@@ -93,5 +93,5 @@ ax.set_xlim(lim)
 ax.set_ylim(lim)
 ax.set_aspect('equal')
 ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0)
-ax.set_title('T-NSE visualization of emotion speech dataset')
+ax.set_title('T-NSE visualization of emotion speech test dataset')
 plt.savefig("t-nse.png", dpi=500)
