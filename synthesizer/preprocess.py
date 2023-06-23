@@ -350,7 +350,7 @@ def process_utterance(raw_wav: np.ndarray, text: str, out_dir: Path, basename: s
         return None
     
     # add MFCC
-    mfcc = get_mfcc(raw_wav, hparams.sample_rate, mean_signal_length=130000)
+    mfcc = get_mfcc(raw_wav, hparams.sample_rate, mean_signal_length=320000)
 
     # Write the spectrogram, embed and audio to disk
     np.save(mel_fpath, mel_spectrogram.T, allow_pickle=False)
@@ -408,9 +408,9 @@ def create_embeddings(synthesizer_root: Path, speaker_encoder_model_fpath: Path,
     session = tf.compat.v1.Session(config=config)
     print(f"###gpus:{gpus}")
 
-    CLASS_LABELS = ("angry", "happy", "neutral", "sad")
+    CLASS_LABELS = ("angry", "happy", "neutral", "sad", "surprise")
 
-    model = TIMNET_Model(args=args, input_shape=(254, 39), class_label=CLASS_LABELS)
+    model = TIMNET_Model(args=args, input_shape=(626, 39), class_label=CLASS_LABELS)
 
     model.create_model()
     

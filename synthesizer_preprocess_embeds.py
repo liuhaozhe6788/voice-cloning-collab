@@ -16,9 +16,9 @@ if __name__ == "__main__":
                         default="saved_models/default/encoder.pt", help=\
         "Path your trained speaker encoder model.")
     parser.add_argument("--emotion_encoder_model_fpath", type=Path,
-                        default="saved_models/default/INTERSECT_46_dilation_8_dropout_05", help=\
+                        default="saved_models/default/INTERSECT_46_dilation_8_dropout_05_add_esd_npairLoss", help=\
         "Path your trained emotion encoder model.")
-    parser.add_argument("--batch_size", type=int, default=256)
+    parser.add_argument("--batch_size", type=int, default=512)
     args = parser.parse_args()
 
     # Preprocess the dataset

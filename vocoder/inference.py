@@ -82,7 +82,7 @@ def waveform_denoising(wav):
     estimate = model(noisy)
     estimate = estimate * (1-hp.dry) + noisy * hp.dry
     estimate = estimate[0].cpu().detach().numpy()
-    return  nr.reduce_noise(np.squeeze(estimate), hp.sample_rate, prop_decrease=prop_decrease) 
+    return  np.squeeze(estimate)
 
 def get_dominant_freq(wav, name="fft"):
     import matplotlib.pyplot as plt

@@ -18,7 +18,7 @@ if __name__ == '__main__':
     parser.add_argument("-m", "--models_dir", type=Path, default="saved_models",
                         help="Directory containing all saved models")
     parser.add_argument("--emotion_encoder_model_fpath", type=Path,
-                        default="saved_models/default/INTERSECT_46_dilation_8_dropout_05", help=\
+                        default="saved_models/default/INTERSECT_46_dilation_8_dropout_05_add_esd_npairLoss", help=\
         "Path your trained emotion encoder model.")
     parser.add_argument("--weight", type=float, default=1,
                         help="weight of input audio for voice filter")
@@ -99,9 +99,9 @@ if __name__ == '__main__':
     session = tf.compat.v1.Session(config=config)
     print(f"###gpus:{gpus}")
 
-    CLASS_LABELS = ("angry", "happy", "neutral", "sad")
+    CLASS_LABELS = ("angry", "happy", "neutral", "sad", "surprise")
 
-    emotion_encoder = TIMNET_Model(args=emotion_encoder_args, input_shape=(254, 39), class_label=CLASS_LABELS)
+    emotion_encoder = TIMNET_Model(args=emotion_encoder_args, input_shape=(626, 39), class_label=CLASS_LABELS)
 
     emotion_encoder.create_model()
 
@@ -185,16 +185,17 @@ if __name__ == '__main__':
     # in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
 
     in_fpaths = [
+        # "/home/liuhaozhe/signal_processing_projs/collected_audios/recorded_audios/long_audios/liuhaozhe.m4a",
         "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/anger_pt.wav",
         "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/amused_pt.wav",
         "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/disgust_pt.wav",
         "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/neutral_pt.wav",
         "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/sleepiness_pt.wav",
-        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Angry/evaluation/0016_000351.wav", # angry
-        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Happy/test/0016_000721.wav", # happy 
-        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Neutral/train/0016_000051.wav", # neutral
-        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Sad/evaluation/0016_001052.wav", # sad
-        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Surprise/test/0016_001422.wav" # surprise
+        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Angry/test/0016_000371.wav", # angry
+        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Happy/test/0016_000723.wav", # happy 
+        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Neutral/test/0016_000024.wav", # neutral
+        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Sad/test/0016_001077.wav", # sad
+        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Surprise/test/0016_001428.wav" # surprise
     ]
     for in_fpath in in_fpaths:
 
@@ -229,7 +230,7 @@ if __name__ == '__main__':
         # speaker encoder interfaces. These are mostly for in-depth research. You will typically
         # only use this function (with its default parameters):
         speaker_embed = speaker_encoder.inference.embed_utterance(preprocessed_wav)
-        mfcc = get_mfcc(wav, hparams.sample_rate, mean_signal_length=130000)
+        mfcc = get_mfcc(wav, hparams.sample_rate, mean_signal_length=320000)
         emotion_embed = emotion_encoder.infer(np.array([mfcc]), model_dir=args.emotion_encoder_model_fpath)[0]
     
         # Choose standard audio
@@ -262,7 +263,7 @@ if __name__ == '__main__':
         start_syn = time.time()
         # Generating the spectrogram
         # text = input("Write a sentence to be synthesized:\n")
-        text = "We have to reduce the number of plastic bags."
+        text = "Kids are talking by the door"
 
         # If seed is specified, reset torch seed and force synthesizer reload
         if args.seed is not None:
@@ -291,9 +292,9 @@ if __name__ == '__main__':
         ## Save synthesizer visualization results
         if not os.path.exists("syn_results"):
             os.mkdir("syn_results")
-        save_attention_multiple(alignments, "syn_results/attention")
-        save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
-        save_spectrogram(spec, "syn_results/mel")
+        # save_attention_multiple(alignments, "syn_results/attention")
+        # save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
+        # save_spectrogram(spec, "syn_results/mel")
         print("Created the mel spectrogram")
 
         end_syn = time.time()

@@ -54,12 +54,12 @@ hparams = HParams(
                         (2,  5e-4,  80_000,  12),   # (r, lr, step, batch_size)
                         (2,  2e-4,  160_000,  12),   #
                         (2,  1e-4, 320_000,  12),   # r = reduction factor (# of mel frames
-                        (2,  3e-5, 1280_000,  12),   #     synthesized for each decoder iteration)
-                        (2,  1e-3, 7_600_000,  64),  # lr = learning rate
-                        (2,  5e-4, 7_620_000,  64),
-                        (2,  2e-4, 7_660_000,  64),
-                        (2,  1e-4, 7_820_000,  64),  
-                        (2,  3e-5, 8_160_000,  64)],
+                        # (2,  3e-5, 1280_000,  12),   #     synthesized for each decoder iteration)
+                        # (2,  1e-3, 1_280_000,  64),  # lr = learning rate
+                        # (2,  5e-4, 1_320_000,  64),
+                        # (2,  2e-4, 1_400_000,  64),
+                        # (2,  1e-4, 1_560_000,  64),  
+                        (2,  3e-5, 1_880_000,  64)],
 
         tts_clip_grad_norm = 1.0,                   # clips the gradient norm to prevent explosion - set to None if not needed
         tts_eval_interval = 500,                    # Number of steps between model evaluation (sample generation)

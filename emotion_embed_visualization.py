@@ -13,8 +13,8 @@ from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--test_path', type=str, default='saved_models/default/INTERSECT_46_dilation_8_dropout_05_add_esd')
-parser.add_argument('--data', type=str, default='ESD_test')
+parser.add_argument('--test_path', type=str, default='saved_models/default/INTERSECT_46_dilation_8_dropout_05_add_esd_npairLoss')
+parser.add_argument('--data', type=str, default='RAVDE')
 parser.add_argument('--lr', type=float, default=0.001)
 parser.add_argument('--beta1', type=float, default=0.93)
 parser.add_argument('--beta2', type=float, default=0.98)
@@ -85,7 +85,7 @@ print(tsne_result.shape)
 # Plot the result of our TSNE with the label color coded
 # A lot of the stuff here is about making the plot look pretty and not TSNE
 tsne_result_df = pd.DataFrame({'x': tsne_result[:,0], 'y': tsne_result[:,1], 'label': y_source})
-tsne_result_df["label"]=tsne_result_df["label"].apply(lambda x:ESD_CLASS_LABELS[x])
+tsne_result_df["label"]=tsne_result_df["label"].apply(lambda x:RAVDE_CLASS_LABELS[x])
 fig, ax = plt.subplots(1)
 sns.scatterplot(x='x', y='y', hue='label', data=tsne_result_df, ax=ax,s=40)
 lim = (tsne_result.min()-5, tsne_result.max()+5)

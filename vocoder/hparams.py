@@ -47,5 +47,5 @@ is_crossfade = True                 # crossfading or not
 # Output Noise Reduce
 prop_decrease_low_freq = 0.6        # prop decrease for low dominant frequency
 prop_decrease_high_freq = 0.9        # prop decrease for high dominant frequency
-dry=0.1                              # dry ratio for facebook denoiser
+dry= 0.1                              # dry ratio for facebook denoiser
 sex = -1                        

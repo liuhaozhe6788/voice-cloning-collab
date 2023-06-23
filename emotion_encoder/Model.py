@@ -11,6 +11,7 @@ from keras import callbacks
 from keras.layers import Layer,Dense,Input
 from keras.models import Model
 from sklearn.metrics import confusion_matrix
+from keras.utils.generic_utils import get_custom_objects
 from .Common_Model import Common_Model
 from sklearn.model_selection import KFold
 from sklearn.metrics import classification_report
@@ -27,6 +28,18 @@ def smooth_labels(labels, factor=0.1):
     labels *= (1 - factor)
     labels += (factor / labels.shape[1])
     return labels
+
+def npairs_loss(y_true, y_pred):
+    y_pred = tf.convert_to_tensor(y_pred)
+    y_true = tf.cast(y_true, y_pred.dtype)
+    samples = []
+    for i in range(y_true.shape[-1]):
+        samples.append(tf.math.reduce_mean(tf.boolean_mask(y_pred, tf.argmax(y_true, axis=1) == i), axis=0))
+    samples = tf.convert_to_tensor(samples)
+    # y_pos_samples = tf.matmul(y_true, samples)
+    similarity_matrix = tf.einsum('ij,kj->ik', y_pred, samples)
+    loss = tf.nn.softmax_cross_entropy_with_logits(logits=similarity_matrix, labels=y_true)
+    return tf.math.reduce_mean(loss)
 
 class WeightLayer(Layer):
     def __init__(self, **kwargs):
@@ -62,6 +75,7 @@ class TIMNET_Model(Common_Model):
         self.matrix = []
         self.eva_matrix = []
         self.acc = 0
+        get_custom_objects().update({'npairs_loss': npairs_loss})
         print("TIMNET MODEL SHAPE:",input_shape)
     
     def create_model(self):
@@ -79,12 +93,12 @@ class TIMNET_Model(Common_Model):
         #TODO：添加正则化
         self.decision = self.decision/(tf.norm(self.decision, axis=1, keepdims=True)+1e-5)
         ###
-        self.predictions = Dense(self.num_classes, activation='softmax')(self.decision)
-        self.model = Model(inputs = self.inputs, outputs = self.predictions)
+        # self.predictions = Dense(self.num_classes, activation='softmax')(self.decision)
+        self.model = Model(inputs = self.inputs, outputs = self.decision)
         
-        self.model.compile(loss = "categorical_crossentropy",
+        self.model.compile(loss = 'npairs_loss',
                            optimizer =Adam(learning_rate=self.args.lr, beta_1=self.args.beta1, beta_2=self.args.beta2, epsilon=1e-8),
-                           metrics = ['accuracy'])
+                           metrics = ['npairs_loss'])
         print("Temporal create success!")
         
     def train(self, x, y):
@@ -182,14 +196,12 @@ class TIMNET_Model(Common_Model):
         batch_size, feat_dim=x.shape[0],x.shape[2]
         x_feats=np.zeros(shape=(10,batch_size,feat_dim))
         # y_preds =np.zeros(shape=(10,batch_size,4))
-        for i in range(1, self.args.split_fold+1):
-            weight_path=os.path.join(model_dir, str(self.args.split_fold)+"-fold_weights_best_"+str(i)+".hdf5")
-            self.model.load_weights(weight_path)#+source_name+'_single_best.hdf5')
-            # y_pred = self.model.predict(x)
-            caps_layer_model = Model(inputs=self.model.input,
-            outputs=self.model.get_layer(index=-2).output)
-            feature_source = caps_layer_model.predict(x, batch_size=128)
-            x_feats[i-1]=feature_source
-            # y_preds[i-1]=y_pred
-        return np.mean(x_feats, axis=0)
+        weight_path=os.path.join(model_dir, "weights_best.hdf5")
+        self.model.load_weights(weight_path)#+source_name+'_single_best.hdf5')
+        # y_pred = self.model.predict(x)
+        # caps_layer_model = Model(inputs=self.model.input,
+        # outputs=self.model.get_layer(index=-2).output)
+        x_feats = self.model.predict(x, batch_size=batch_size, verbose=0)
+        # y_preds[i-1]=y_pred
+        return x_feats
         # return np.mean(x_feats, axis=0), mode(np.argmax(y_preds, axis=-1), axis=0).mode[0]
