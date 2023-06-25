@@ -18,7 +18,7 @@ class HParams(object):
                 self.__dict__[k] = ast.literal_eval(values[keys.index(k)])
         return self
 
-hparams = HParams(
+syn_hparams = HParams(
         ### Signal Processing (used in both synthesizer and vocoder)
         sample_rate = 16000,
         n_fft = 800,
@@ -94,4 +94,4 @@ hparams = HParams(
         )
 
 def hparams_debug_string():
-    return str(hparams)
+    return str(syn_hparams)

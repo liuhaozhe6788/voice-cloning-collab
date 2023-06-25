@@ -2,7 +2,7 @@ from multiprocessing.pool import Pool
 from synthesizer import audio
 from functools import partial
 from itertools import chain, groupby
-from speaker_encoder import inference as speaker_encoder
+from speaker_encoder import inference as speaker_encoder_infer
 from pathlib import Path
 from utils import logmmse
 from tqdm import tqdm
@@ -335,7 +335,7 @@ def process_utterance(raw_wav: np.ndarray, text: str, out_dir: Path, basename: s
         return None
     
     # Trim silence
-    wav = speaker_encoder.preprocess_wav(raw_wav, normalize=False, trim_silence=trim_silence)
+    wav = speaker_encoder_infer.preprocess_wav(raw_wav, normalize=False, trim_silence=trim_silence)
 
     # Skip utterances that are too short
     if len(wav) < hparams.utterance_min_duration * hparams.sample_rate:
@@ -363,9 +363,9 @@ def process_utterance(raw_wav: np.ndarray, text: str, out_dir: Path, basename: s
 
 def embed_utterance(fpath_batch, encoder_model_fpaths, model):
     speaker_encoder_fpath, emotion_encoder_fpath = encoder_model_fpaths
-    if not speaker_encoder.is_loaded():
-        speaker_encoder.load_model(speaker_encoder_fpath)
-    wavs = [speaker_encoder.preprocess_wav(np.load(fpaths[0])) for fpaths in fpath_batch]
+    if not speaker_encoder_infer.is_loaded():
+        speaker_encoder_infer.load_model(speaker_encoder_fpath)
+    wavs = [speaker_encoder_infer.preprocess_wav(np.load(fpaths[0])) for fpaths in fpath_batch]
     speaker_embed_fpaths = [fpaths[1] for fpaths in fpath_batch]
     mfccs = [np.load(fpaths[2]) for fpaths in fpath_batch]
     emotion_embed_fpaths = [fpaths[3] for fpaths in fpath_batch]
@@ -373,7 +373,7 @@ def embed_utterance(fpath_batch, encoder_model_fpaths, model):
     #### create speaker embeddings ####
     # Compute the speaker embedding of the utterance
     for i, wav in enumerate(wavs):
-        embed = speaker_encoder.embed_utterance(wav)
+        embed = speaker_encoder_infer.embed_utterance(wav)
         np.save(speaker_embed_fpaths[i], embed, allow_pickle=False)
 
     #### create emotion embeddings ####

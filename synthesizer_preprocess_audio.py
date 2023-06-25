@@ -1,5 +1,5 @@
 from synthesizer.preprocess import preprocess_librispeech, preprocess_vctk
-from synthesizer.hparams import hparams
+from synthesizer.hparams import syn_hparams
 from utils.argutils import print_args
 from pathlib import Path
 import argparse
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     # Preprocess the dataset
     print_args(args, parser)
-    args.hparams = hparams.parse(args.hparams)
+    args.hparams = syn_hparams.parse(args.hparams)
     preprocess_func = {
         "LibriSpeech": preprocess_librispeech,
         "VCTK": preprocess_vctk,

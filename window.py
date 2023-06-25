@@ -44,7 +44,7 @@ if __name__ == '__main__':
     import torch
     import speaker_encoder.inference
     import speaker_encoder.params_data 
-    from synthesizer.inference import Synthesizer
+    from synthesizer.inference import Synthesizer_infer
     from vocoder import inference as vocoder
     import json
     import tensorflow as tf
@@ -71,7 +71,7 @@ if __name__ == '__main__':
         print("Preparing the encoder and the synthesizer...")
 
     speaker_encoder.inference.load_model(list(args.models_dir.glob(f"{args.run_id}/encoder.pt"))[0])
-    synthesizer = Synthesizer(list(args.models_dir.glob(f"{args.run_id}/synthesizer.pt"))[0], model_name="EmotionTacotron")
+    synthesizer = Synthesizer_infer(list(args.models_dir.glob(f"{args.run_id}/synthesizer.pt"))[0], model_name="EmotionTacotron")
     if not args.griffin_lim:
         vocoder.load_model(list(args.models_dir.glob(f"{args.run_id}/vocoder.pt"))[0])
 

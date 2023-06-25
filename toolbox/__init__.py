@@ -3,14 +3,23 @@ import traceback
 from pathlib import Path
 from time import perf_counter as timer
 import re
+import os
 
 import numpy as np
 import torch
 import soundfile as sf
+import spacy
+import tensorflow as tf
+import argparse
+import json
 
-from speaker_encoder import inference as speaker_encoder
-from synthesizer.inference import Synthesizer
-from synthesizer.hparams import hparams
+import speaker_encoder
+from emotion_encoder.Model import TIMNET_Model
+from emotion_encoder.utils import get_mfcc
+from speaker_encoder import inference as speaker_encoder_infer
+from synthesizer.inference import Synthesizer_infer
+from synthesizer.utils.cleaners import add_breaks, english_cleaners_predict
+from synthesizer.hparams import syn_hparams
 from toolbox.ui import UI
 from toolbox.utterance import Utterance
 from vocoder import inference as vocoder
@@ -52,12 +61,13 @@ class Toolbox:
         self.utterances = set()
         self.current_generated = (None, None, None, None) # speaker_name, spec, breaks, wav
 
-        self.synthesizer = None # type: Synthesizer
+        self.synthesizer = None # type: Synthesizer_infer
         self.current_wav = None
         self.waves_list = []
         self.waves_count = 0
         self.waves_namelist = []
         self.start_generate_time = None
+        self.nlp = spacy.load('en_core_web_sm')
 
         # Check for webrtcvad (enables removal of silences in vocoder output)
         try:
@@ -89,7 +99,7 @@ class Toolbox:
         self.ui.speaker_box.currentIndexChanged.connect(random_func(2))
 
         # Model selection
-        self.ui.encoder_box.currentIndexChanged.connect(self.init_encoder)
+        self.ui.speaker_encoder_box.currentIndexChanged.connect(self.init_speaker_encoder)
         def func():
             self.synthesizer = None
         self.ui.synthesizer_box.currentIndexChanged.connect(func)
@@ -100,13 +110,13 @@ class Toolbox:
         self.ui.browser_browse_button.clicked.connect(func)
         func = lambda: self.ui.draw_utterance(self.ui.selected_utterance, "current")
         self.ui.utterance_history.currentIndexChanged.connect(func)
-        func = lambda: self.ui.play(self.ui.selected_utterance.wav, Synthesizer.sample_rate)
+        func = lambda: self.ui.play(self.ui.selected_utterance.wav, Synthesizer_infer.sample_rate)
         self.ui.play_button.clicked.connect(func)
         self.ui.stop_button.clicked.connect(self.ui.stop)
         self.ui.record_button.clicked.connect(self.record)
 
         #Audio
-        self.ui.setup_audio_devices(Synthesizer.sample_rate)
+        self.ui.setup_audio_devices(Synthesizer_infer.sample_rate)
 
         #Wav playback & save
         func = lambda: self.replay_last_wav()
@@ -129,10 +139,10 @@ class Toolbox:
         self.current_wav = self.waves_list[index]
 
     def export_current_wave(self):
-        self.ui.save_audio_file(self.current_wav, Synthesizer.sample_rate)
+        self.ui.save_audio_file(self.current_wav, Synthesizer_infer.sample_rate)
 
     def replay_last_wav(self):
-        self.ui.play(self.current_wav, Synthesizer.sample_rate)
+        self.ui.play(self.current_wav, Synthesizer_infer.sample_rate)
 
     def reset_ui(self, run_id: str, models_dir: Path, seed: int=None):
         self.ui.populate_browser(self.datasets_root, recognized_datasets, 0, True)
@@ -159,16 +169,16 @@ class Toolbox:
 
         # Get the wav from the disk. We take the wav with the vocoder/synthesizer format for
         # playback, so as to have a fair comparison with the generated audio
-        wav = Synthesizer.load_preprocess_wav(fpath)
+        wav = Synthesizer_infer.load_preprocess_wav(fpath)
         self.ui.log("Loaded %s" % name)
 
         self.add_real_utterance(wav, name, speaker_name)
 
     def record(self):
-        wav = self.ui.record_one(speaker_encoder.sampling_rate, 5)
+        wav = self.ui.record_one(speaker_encoder_infer.sampling_rate, 5)
         if wav is None:
             return
-        self.ui.play(wav, speaker_encoder.sampling_rate)
+        self.ui.play(wav, speaker_encoder_infer.sampling_rate)
 
         speaker_name = "user01"
         name = speaker_name + "_rec_%05d" % np.random.randint(100000)
@@ -176,22 +186,27 @@ class Toolbox:
 
     def add_real_utterance(self, wav, name, speaker_name):
         # Compute the mel spectrogram
-        spec = Synthesizer.make_spectrogram(wav)
+        spec = Synthesizer_infer.make_spectrogram(wav)
         self.ui.draw_spec(spec, "current")
 
-        # Compute the embedding
-        if not speaker_encoder.is_loaded():
-            self.init_encoder()
-        encoder_wav = speaker_encoder.preprocess_wav(wav)
-        embed, partial_embeds, _ = speaker_encoder.embed_utterance(encoder_wav, return_partials=True)
+        # Compute the speaker embedding
+        if not speaker_encoder_infer.is_loaded():
+            self.init_speaker_encoder()
+        encoder_wav = speaker_encoder_infer.preprocess_wav(wav)
+        speaker_embed, partial_embeds, _ = speaker_encoder_infer.embed_utterance(encoder_wav, return_partials=True)
+
+        # Compute the emotion embedding   
+        self.init_emotion_encoder()
+        mfcc = get_mfcc(wav, syn_hparams.sample_rate, mean_signal_length=320000)
+        emotion_embed = self.emotion_encoder.infer(np.array([mfcc]), model_dir=os.path.dirname(self.ui.current_emotion_encoder_fpath))[0]
 
         # Add the utterance
-        utterance = Utterance(name, speaker_name, wav, spec, embed, partial_embeds, False)
+        utterance = Utterance(name, speaker_name, wav, spec, speaker_embed, emotion_embed, partial_embeds, False)
         self.utterances.add(utterance)
         self.ui.register_utterance(utterance)
 
         # Plot it
-        self.ui.draw_embed(embed, name, "current")
+        self.ui.draw_embed(speaker_embed, name, "current")
         self.ui.draw_umap_projections(self.utterances)
 
     def clear_utterances(self):
@@ -217,11 +232,22 @@ class Toolbox:
         if self.synthesizer is None or seed is not None:
             self.init_synthesizer()
 
-        texts = re.split("\.|,|!|\?|;|:|\n", self.ui.text_prompt.toPlainText())
-        texts = list(filter(None, texts))
-        embed = self.ui.selected_utterance.embed
-        embeds = [embed] * len(texts)
-        specs = self.synthesizer.synthesize_spectrograms(texts, embeds)
+        speaker_embed = self.ui.selected_utterance.speaker_embed
+        emotion_embed = self.ui.selected_utterance.emotion_embed
+
+        def preprocess_text(text):
+            text = add_breaks(text) 
+            text = english_cleaners_predict(text)
+            texts = [i.text.strip() for i in self.nlp(text).sents]  # split paragraph to sentences
+            return texts
+
+        texts = preprocess_text(self.ui.text_prompt.toPlainText())
+        print(f"the list of inputs texts:\n{texts}")
+
+        speaker_embeds = [speaker_embed] * len(texts)
+        emotion_embeds = [emotion_embed] * len(texts)
+        specs, alignments, stop_tokens = self.synthesizer.synthesize_spectrograms(texts, speaker_embeds, emotion_embeds, require_visualization=True)
+
         breaks = [spec.shape[1] for spec in specs]
         spec = np.concatenate(specs, axis=1)
 
@@ -248,35 +274,35 @@ class Toolbox:
             self.init_vocoder()
 
         def vocoder_progress(i, seq_len, b_size, gen_rate):
-            real_time_factor = (gen_rate / Synthesizer.sample_rate) * 1000
+            real_time_factor = (gen_rate / Synthesizer_infer.sample_rate) * 1000
             line = "Waveform generation: %d/%d (batch size: %d, rate: %.1fkHz - %.2fx real time)" \
                    % (i * b_size, seq_len * b_size, b_size, gen_rate, real_time_factor)
             self.ui.log(line, "overwrite")
             self.ui.set_loading(i, seq_len)
         if self.ui.current_vocoder_fpath is not None and not self.ui.griffin_lim_checkbox.isChecked():
             self.ui.log("")
-            wav = vocoder.infer_waveform(spec, progress_callback=vocoder_progress)
+            wav = vocoder.infer_waveform(spec, target=vocoder.hp.voc_target, overlap=vocoder.hp.voc_overlap, crossfade=vocoder.hp.is_crossfade) 
         else:
             self.ui.log("Waveform generation with Griffin-Lim... ")
-            wav = Synthesizer.griffin_lim(spec)
+            wav = Synthesizer_infer.griffin_lim(spec)
         self.ui.set_loading(0)
         self.ui.log(" Done!", "append")
         self.ui.log(f"Generate time: {time.time() - self.start_generate_time}s")
 
         # Add breaks
-        b_ends = np.cumsum(np.array(breaks) * Synthesizer.hparams.hop_size)
+        b_ends = np.cumsum(np.array(breaks) * Synthesizer_infer.hparams.hop_size)
         b_starts = np.concatenate(([0], b_ends[:-1]))
         wavs = [wav[start:end] for start, end, in zip(b_starts, b_ends)]
-        breaks = [np.zeros(int(0.15 * Synthesizer.sample_rate))] * len(breaks)
+        breaks = [np.zeros(int(0.15 * Synthesizer_infer.sample_rate))] * len(breaks)
         wav = np.concatenate([i for w, b in zip(wavs, breaks) for i in (w, b)])
 
         # Trim excessive silences
         if self.ui.trim_silences_checkbox.isChecked():
-            wav = speaker_encoder.preprocess_wav(wav)
+            wav = speaker_encoder_infer.preprocess_wav(wav)
 
         # Play it
-        wav = wav / np.abs(wav).max() * 0.5
-        self.ui.play(wav, Synthesizer.sample_rate)
+        wav = wav / np.abs(wav).max() * 4
+        self.ui.play(wav, Synthesizer_infer.sample_rate)
 
         # Name it (history displayed in combobox)
         # TODO better naming for the combobox items?
@@ -302,29 +328,61 @@ class Toolbox:
         self.ui.replay_wav_button.setDisabled(False)
         self.ui.export_wav_button.setDisabled(False)
 
-        # Compute the embedding
+        # Compute the speaker embedding
         # TODO: this is problematic with different sampling rates, gotta fix it
-        if not speaker_encoder.is_loaded():
-            self.init_encoder()
-        encoder_wav = speaker_encoder.preprocess_wav(wav)
-        embed, partial_embeds, _ = speaker_encoder.embed_utterance(encoder_wav, return_partials=True)
+        if not speaker_encoder_infer.is_loaded():
+            self.init_speaker_encoder()
+        encoder_wav = speaker_encoder_infer.preprocess_wav(wav)
+        speaker_embed, partial_embeds, _ = speaker_encoder_infer.embed_utterance(encoder_wav, return_partials=True)
+
+        self.init_emotion_encoder()
+        mfcc = get_mfcc(wav, syn_hparams.sample_rate, mean_signal_length=320000)
+        emotion_embed = self.emotion_encoder.infer(np.array([mfcc]), model_dir=os.path.dirname(self.ui.current_emotion_encoder_fpath))[0]
 
         # Add the utterance
         name = speaker_name + "_gen_%05d" % np.random.randint(100000)
-        utterance = Utterance(name, speaker_name, wav, spec, embed, partial_embeds, True)
+        utterance = Utterance(name, speaker_name, wav, spec, speaker_embed, emotion_embed, partial_embeds, True)
         self.utterances.add(utterance)
 
         # Plot it
-        self.ui.draw_embed(embed, name, "generated")
+        self.ui.draw_embed(speaker_embed, name, "generated")
         self.ui.draw_umap_projections(self.utterances)
 
-    def init_encoder(self):
-        model_fpath = self.ui.current_encoder_fpath
+    def init_speaker_encoder(self):
+        model_fpath = self.ui.current_speaker_encoder_fpath
 
-        self.ui.log("Loading the encoder %s... " % model_fpath)
+        self.ui.log("Loading the speaker encoder %s... " % model_fpath)
         self.ui.set_loading(1)
         start = timer()
-        speaker_encoder.load_model(model_fpath)
+        speaker_encoder_infer.load_model(model_fpath)
+        self.ui.log("Done (%dms)." % int(1000 * (timer() - start)), "append")
+        self.ui.set_loading(0)
+
+    def init_emotion_encoder(self):
+        model_fpath = self.ui.current_emotion_encoder_fpath
+
+        self.ui.log("Loading the emotion encoder %s... " % model_fpath)
+        self.ui.set_loading(1)
+        start = timer()
+        
+        ### prepare the emotion encoder ###
+        json_fpath = os.path.join(os.path.dirname(self.ui.current_emotion_encoder_fpath), "params.json")
+        f = open(json_fpath)
+        emotion_encoder_args = argparse.Namespace(**json.load(f))
+            
+        os.environ['CUDA_VISIBLE_DEVICES'] = emotion_encoder_args.gpu
+        gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
+        config = tf.compat.v1.ConfigProto()
+        config.gpu_options.allow_growth=True
+        session = tf.compat.v1.Session(config=config)
+        print(f"###gpus:{gpus}")
+
+        CLASS_LABELS = ("angry", "happy", "neutral", "sad", "surprise")
+
+        self.emotion_encoder = TIMNET_Model(args=emotion_encoder_args, input_shape=(626, 39), class_label=CLASS_LABELS)
+
+        self.emotion_encoder.create_model()
+
         self.ui.log("Done (%dms)." % int(1000 * (timer() - start)), "append")
         self.ui.set_loading(0)
 
@@ -334,7 +392,7 @@ class Toolbox:
         self.ui.log("Loading the synthesizer %s... " % model_fpath)
         self.ui.set_loading(1)
         start = timer()
-        self.synthesizer = Synthesizer(model_fpath)
+        self.synthesizer = Synthesizer_infer(model_fpath, model_name="EmotionTacotron")
         self.ui.log("Done (%dms)." % int(1000 * (timer() - start)), "append")
         self.ui.set_loading(0)
 

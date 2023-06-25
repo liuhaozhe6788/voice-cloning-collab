@@ -3,8 +3,8 @@ from ffmpeg import audio
 from pathlib import Path
 import numpy as np
 import parselmouth
-from synthesizer.inference import Synthesizer
-from synthesizer.hparams import hparams
+from synthesizer.inference import Synthesizer_infer
+from synthesizer.hparams import syn_hparams
 import soundfile as sf
 from parselmouth.praat import run_file
 
@@ -67,13 +67,13 @@ def TransFormat(fullpath, out_suffix):
     is_wav_file = False  # 原始音频的后缀是否为.wav
     path_, name = os.path.split(fullpath)
     name, suffix = os.path.splitext(name)
-    wav = Synthesizer.load_preprocess_wav(fullpath)
+    wav = Synthesizer_infer.load_preprocess_wav(fullpath)
     if suffix == ".wav":  # 如果原始音频的后缀为.wav，则不用进行格式转换
         is_wav_file = True
         return is_wav_file, wav, str(fullpath)
     else:  # 如果原始音频的后缀不是.wav，则需要进行格式转换
         out_file = os.path.join(path_, name + "." + str(out_suffix))  
-        sf.write(out_file, wav.astype(np.float32), hparams.sample_rate)
+        sf.write(out_file, wav.astype(np.float32), syn_hparams.sample_rate)
         return is_wav_file, wav, str(out_file)
 
 

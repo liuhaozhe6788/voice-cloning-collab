@@ -91,7 +91,7 @@ class UI(QDialog):
 
         speakers = np.unique([u.speaker_name for u in utterances])
         colors = {speaker_name: colormap[i] for i, speaker_name in enumerate(speakers)}
-        embeds = [u.embed for u in utterances]
+        embeds = [u.speaker_embed for u in utterances]
 
         # Display a message if there aren't enough points
         if len(utterances) < self.min_umap_points:
@@ -312,8 +312,12 @@ class UI(QDialog):
         self.utterance_box.setCurrentIndex(index)
 
     @property
-    def current_encoder_fpath(self):
-        return self.encoder_box.itemData(self.encoder_box.currentIndex())
+    def current_speaker_encoder_fpath(self):
+        return self.speaker_encoder_box.itemData(self.speaker_encoder_box.currentIndex())
+    
+    @property
+    def current_emotion_encoder_fpath(self):
+        return self.emotion_encoder_box.itemData(self.emotion_encoder_box.currentIndex())
 
     @property
     def current_synthesizer_fpath(self):
@@ -324,11 +328,17 @@ class UI(QDialog):
         return self.vocoder_box.itemData(self.vocoder_box.currentIndex())
 
     def populate_models(self, run_id: str, models_dir: Path):
-        # Encoder
-        encoder_fpaths = list(models_dir.glob(f"{run_id}/encoder.pt"))
-        if len(encoder_fpaths) == 0:
-            raise Exception("No encoder models found in %s" % models_dir)
-        self.repopulate_box(self.encoder_box, [(f.parent.name, f) for f in encoder_fpaths])
+        # Speaker Encoder
+        speaker_encoder_fpaths = list(models_dir.glob(f"{run_id}/encoder.pt"))
+        if len(speaker_encoder_fpaths) == 0:
+            raise Exception("No speaker encoder models found in %s" % models_dir)
+        self.repopulate_box(self.speaker_encoder_box, [(f.parent.name, f) for f in speaker_encoder_fpaths])
+
+        # Emotion Encoder
+        emotion_encoder_fpaths = list(models_dir.glob(f"{run_id}/**/*.hdf5"))
+        if len(emotion_encoder_fpaths) == 0:
+            raise Exception("No emotion encoder models found in %s" % models_dir)
+        self.repopulate_box(self.emotion_encoder_box, [(f.parent.parent.name, f) for f in emotion_encoder_fpaths])
 
         # Synthesizer
         synthesizer_fpaths = list(models_dir.glob(f"{run_id}/synthesizer.pt"))
@@ -499,19 +509,22 @@ class UI(QDialog):
 
 
         # Model and audio output selection
-        self.encoder_box = QComboBox()
-        browser_layout.addWidget(QLabel("<b>Encoder</b>"), i, 0)
-        browser_layout.addWidget(self.encoder_box, i + 1, 0)
+        self.speaker_encoder_box = QComboBox()
+        browser_layout.addWidget(QLabel("<b>Speaker Encoder</b>"), i, 0)
+        browser_layout.addWidget(self.speaker_encoder_box, i + 1, 0)
+        self.emotion_encoder_box = QComboBox()
+        browser_layout.addWidget(QLabel("<b>Emotion Encoder</b>"), i, 1)
+        browser_layout.addWidget(self.emotion_encoder_box, i + 1, 1)
         self.synthesizer_box = QComboBox()
-        browser_layout.addWidget(QLabel("<b>Synthesizer</b>"), i, 1)
-        browser_layout.addWidget(self.synthesizer_box, i + 1, 1)
+        browser_layout.addWidget(QLabel("<b>Synthesizer</b>"), i, 2)
+        browser_layout.addWidget(self.synthesizer_box, i + 1, 2)
         self.vocoder_box = QComboBox()
-        browser_layout.addWidget(QLabel("<b>Vocoder</b>"), i, 2)
-        browser_layout.addWidget(self.vocoder_box, i + 1, 2)
+        browser_layout.addWidget(QLabel("<b>Vocoder</b>"), i, 3)
+        browser_layout.addWidget(self.vocoder_box, i + 1, 3)
 
         self.audio_out_devices_cb=QComboBox()
-        browser_layout.addWidget(QLabel("<b>Audio Output</b>"), i, 3)
-        browser_layout.addWidget(self.audio_out_devices_cb, i + 1, 3)
+        browser_layout.addWidget(QLabel("<b>Audio Output</b>"), i, 4)
+        browser_layout.addWidget(self.audio_out_devices_cb, i + 1, 4)
         i += 2
 
         #Replay & Save Audio

@@ -54,7 +54,7 @@ if __name__ == '__main__':
     import speaker_encoder.inference
     import speaker_encoder.params_data 
     from emotion_encoder.utils import get_mfcc
-    from synthesizer.inference import Synthesizer
+    from synthesizer.inference import Synthesizer_infer
     from synthesizer.utils.cleaners import add_breaks, english_cleaners_predict
     from vocoder import inference as vocoder
     from vocoder.display import save_attention_multiple, save_spectrogram, save_stop_tokens
@@ -83,7 +83,7 @@ if __name__ == '__main__':
         print("Preparing the encoder and the synthesizer...")
     ensure_default_models(args.run_id, args.models_dir)  #找到模型，如果没找到就在网络上下载默认模型保证有模型可用
     speaker_encoder.inference.load_model(list(args.models_dir.glob(f"{args.run_id}/encoder.pt"))[0])
-    synthesizer = Synthesizer(list(args.models_dir.glob(f"{args.run_id}/synthesizer.pt"))[0], model_name="EmotionTacotron")
+    synthesizer = Synthesizer_infer(list(args.models_dir.glob(f"{args.run_id}/synthesizer.pt"))[0], model_name="EmotionTacotron")
     if not args.griffin_lim:
         vocoder.load_model(list(args.models_dir.glob(f"{args.run_id}/vocoder.pt"))[0])
 
@@ -230,7 +230,7 @@ if __name__ == '__main__':
         # speaker encoder interfaces. These are mostly for in-depth research. You will typically
         # only use this function (with its default parameters):
         speaker_embed = speaker_encoder.inference.embed_utterance(preprocessed_wav)
-        mfcc = get_mfcc(wav, hparams.sample_rate, mean_signal_length=320000)
+        mfcc = get_mfcc(wav, syn_hparams.sample_rate, mean_signal_length=320000)
         emotion_embed = emotion_encoder.infer(np.array([mfcc]), model_dir=args.emotion_encoder_model_fpath)[0]
     
         # Choose standard audio
@@ -268,7 +268,7 @@ if __name__ == '__main__':
         # If seed is specified, reset torch seed and force synthesizer reload
         if args.seed is not None:
             torch.manual_seed(args.seed)
-            synthesizer = Synthesizer(args.syn_model_fpath)
+            synthesizer = Synthesizer_infer(args.syn_model_fpath)
 
         # The synthesizer works in batch, so you need to put your data in a list or numpy array
         def preprocess_text(text):
@@ -314,17 +314,17 @@ if __name__ == '__main__':
         if not args.griffin_lim:
             wav = vocoder.infer_waveform(spec, target=vocoder.hp.voc_target, overlap=vocoder.hp.voc_overlap, crossfade=vocoder.hp.is_crossfade) 
         else:
-            wav = Synthesizer.griffin_lim(spec)
+            wav = Synthesizer_infer.griffin_lim(spec)
 
         end_voc = time.time()
         print(f"Prediction time of vocoder is {end_voc - start_voc}s")
         print(f"Prediction time of TTS is {end_voc - start_syn}s")
 
         # Add breaks
-        b_ends = np.cumsum(np.array(breaks) * Synthesizer.hparams.hop_size)
+        b_ends = np.cumsum(np.array(breaks) * Synthesizer_infer.hparams.hop_size)
         b_starts = np.concatenate(([0], b_ends[:-1]))
         wavs = [wav[start:end] for start, end, in zip(b_starts, b_ends)]
-        breaks = [np.zeros(int(0.15 * Synthesizer.sample_rate))] * len(breaks)
+        breaks = [np.zeros(int(0.15 * Synthesizer_infer.sample_rate))] * len(breaks)
         wav = np.concatenate([i for w, b in zip(wavs, breaks) for i in (w, b)])
 
         # Trim excess silences to compensate for gaps in spectrograms (issue #53)
