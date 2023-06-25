@@ -8,8 +8,8 @@ from synthesizer.hparams import hparams
 import soundfile as sf
 from parselmouth.praat import run_file
 
-high_lim_speed_factor = 1.0
-low_lim_speed_factor = 0.5
+high_lim_speed_factor = 10.0
+low_lim_speed_factor = 0.1
 
 def AudioAnalysis(dir, file):
     sound = os.path.join(dir, file) 

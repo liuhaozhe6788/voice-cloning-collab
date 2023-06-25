@@ -25,7 +25,7 @@ if __name__ == '__main__':
     parser.add_argument("--griffin_lim",
                         action="store_true",
                         help="if True, use griffin-lim, else use vocoder")
-    parser.add_argument("--cpu", action="store_true", help=\
+    parser.add_argument("--cpu", action="store_false", help=\
         "If True, processing is done on CPU, even when a GPU is available.")
     parser.add_argument("--no_sound", action="store_true", help=\
         "If True, audio won't be played.")
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
     print("Running a test of your configuration...\n")
-
+    
     import numpy as np
     import soundfile as sf
     import torch
@@ -81,7 +81,7 @@ if __name__ == '__main__':
         print("Preparing the encoder, the synthesizer and the vocoder...")
     else:
         print("Preparing the encoder and the synthesizer...")
-    ensure_default_models(args.run_id, Path("saved_models"))
+    ensure_default_models(args.run_id, args.models_dir)  #找到模型，如果没找到就在网络上下载默认模型保证有模型可用
     speaker_encoder.inference.load_model(list(args.models_dir.glob(f"{args.run_id}/encoder.pt"))[0])
     synthesizer = Synthesizer(list(args.models_dir.glob(f"{args.run_id}/synthesizer.pt"))[0], model_name="EmotionTacotron")
     if not args.griffin_lim:
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     os.environ['CUDA_VISIBLE_DEVICES'] = emotion_encoder_args.gpu
     gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
     config = tf.compat.v1.ConfigProto()
-    config.gpu_options.allow_growth=True 
+    config.gpu_options.allow_growth=True
     session = tf.compat.v1.Session(config=config)
     print(f"###gpus:{gpus}")
 
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     # in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
 
     in_fpaths = [
-        # "/home/liuhaozhe/signal_processing_projs/collected_audios/recorded_audios/long_audios/liuhaozhe.m4a",
+        # "/home/liuhaozhe/signal_processing_projs/rtvc/voice-cloning-collab/samples/6829_00000.mp3",
         "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/anger_pt.wav",
         "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/amused_pt.wav",
         "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/disgust_pt.wav",
@@ -263,7 +263,7 @@ if __name__ == '__main__':
         start_syn = time.time()
         # Generating the spectrogram
         # text = input("Write a sentence to be synthesized:\n")
-        text = "Kids are talking by the door"
+        text = "Her face was against his breast"
 
         # If seed is specified, reset torch seed and force synthesizer reload
         if args.seed is not None:
@@ -341,7 +341,7 @@ if __name__ == '__main__':
         # print(wav.dtype)
         sf.write(filename, wav.astype(np.float32), synthesizer.sample_rate)
         num_generated += 1
-        print("\nSaved output (havent't change speed) as %s\n\n" % filename)
+        print("\nSaved output (haven't change speed) as %s\n\n" % filename)
 
         # Fix Speed(generate new audio)
         fix_file = work(totDur_ori, 
