@@ -281,7 +281,7 @@ class Toolbox:
             self.ui.set_loading(i, seq_len)
         if self.ui.current_vocoder_fpath is not None and not self.ui.griffin_lim_checkbox.isChecked():
             self.ui.log("")
-            wav = vocoder.infer_waveform(spec, target=vocoder.hp.voc_target, overlap=vocoder.hp.voc_overlap, crossfade=vocoder.hp.is_crossfade) 
+            wav = vocoder.infer_waveform(spec, target=vocoder.hp.voc_target, overlap=vocoder.hp.voc_overlap, crossfade=vocoder.hp.is_crossfade, progress_callback=vocoder_progress) 
         else:
             self.ui.log("Waveform generation with Griffin-Lim... ")
             wav = Synthesizer_infer.griffin_lim(spec)
