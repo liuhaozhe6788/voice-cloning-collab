@@ -2,7 +2,7 @@ import argparse
 import os
 from pathlib import Path
 
-from synthesizer.hparams import hparams
+from synthesizer.hparams import syn_hparams
 from synthesizer.synthesize import run_synthesis
 from utils.argutils import print_args
 
@@ -33,7 +33,7 @@ if __name__ == "__main__":
         "If True, processing is done on CPU, even when a GPU is available.")
     args = parser.parse_args()
     print_args(args, parser)
-    modified_hp = hparams.parse(args.hparams)
+    modified_hp = syn_hparams.parse(args.hparams)
 
     if not hasattr(args, "in_dir"):
         args.in_dir = args.datasets_root / "SV2TTS" / "synthesizer"

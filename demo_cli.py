@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     import encoder.inference
     import encoder.params_data 
-    from synthesizer.inference import Synthesizer
+    from synthesizer.inference import Synthesizer_infer
     from synthesizer.utils.cleaners import add_breaks, english_cleaners_predict
     from vocoder import inference as vocoder
     from vocoder.display import save_attention_multiple, save_spectrogram, save_stop_tokens
@@ -73,7 +73,7 @@ if __name__ == '__main__':
         print("Preparing the encoder and the synthesizer...")
     ensure_default_models(args.run_id, Path("saved_models"))
     encoder.inference.load_model(list(args.models_dir.glob(f"{args.run_id}/encoder.pt"))[0])
-    synthesizer = Synthesizer(list(args.models_dir.glob(f"{args.run_id}/synthesizer.pt"))[0])
+    synthesizer = Synthesizer_infer(list(args.models_dir.glob(f"{args.run_id}/synthesizer.pt"))[0])
     if not args.griffin_lim:
         vocoder.load_model(list(args.models_dir.glob(f"{args.run_id}/vocoder.pt"))[0])
 
@@ -201,7 +201,7 @@ if __name__ == '__main__':
 
     if os.path.exists(standard_fpath):
         
-        standard_wav = Synthesizer.load_preprocess_wav(standard_fpath)
+        standard_wav = Synthesizer_infer.load_preprocess_wav(standard_fpath)
         preprocessed_standard_wav = encoder.inference.preprocess_wav(standard_wav)
         print("Loaded standard audio file successfully")
 
@@ -223,7 +223,7 @@ if __name__ == '__main__':
     # If seed is specified, reset torch seed and force synthesizer reload
     if args.seed is not None:
         torch.manual_seed(args.seed)
-        synthesizer = Synthesizer(args.syn_model_fpath)
+        synthesizer = Synthesizer_infer(args.syn_model_fpath)
 
     # The synthesizer works in batch, so you need to put your data in a list or numpy array
     def preprocess_text(text):
@@ -267,17 +267,17 @@ if __name__ == '__main__':
     if not args.griffin_lim:
         wav = vocoder.infer_waveform(spec, target=vocoder.hp.voc_target, overlap=vocoder.hp.voc_overlap, crossfade=vocoder.hp.is_crossfade) 
     else:
-        wav = Synthesizer.griffin_lim(spec)
+        wav = Synthesizer_infer.griffin_lim(spec)
 
     end_voc = time.time()
     print(f"Prediction time of vocoder is {end_voc - start_voc}s")
     print(f"Prediction time of TTS is {end_voc - start_syn}s")
 
     # Add breaks
-    b_ends = np.cumsum(np.array(breaks) * Synthesizer.hparams.hop_size)
+    b_ends = np.cumsum(np.array(breaks) * Synthesizer_infer.hparams.hop_size)
     b_starts = np.concatenate(([0], b_ends[:-1]))
     wavs = [wav[start:end] for start, end, in zip(b_starts, b_ends)]
-    breaks = [np.zeros(int(0.15 * Synthesizer.sample_rate))] * len(breaks)
+    breaks = [np.zeros(int(0.15 * Synthesizer_infer.sample_rate))] * len(breaks)
     wav = np.concatenate([i for w, b in zip(wavs, breaks) for i in (w, b)])
 
     # Trim excess silences to compensate for gaps in spectrograms (issue #53)

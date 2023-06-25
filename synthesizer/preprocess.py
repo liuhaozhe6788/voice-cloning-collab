@@ -2,7 +2,7 @@ from multiprocessing.pool import Pool
 from synthesizer import audio
 from functools import partial
 from itertools import chain, groupby
-from encoder import inference as encoder
+from encoder import inference as encoder_infer
 from pathlib import Path
 from utils import logmmse
 from tqdm import tqdm
@@ -330,7 +330,7 @@ def process_utterance(wav: np.ndarray, text: str, out_dir: Path, basename: str,
         return None
 
     # Trim silence
-    wav = encoder.preprocess_wav(wav, normalize=False, trim_silence=trim_silence)
+    wav = encoder_infer.preprocess_wav(wav, normalize=False, trim_silence=trim_silence)
 
     # Skip utterances that are too short
     if len(wav) < hparams.utterance_min_duration * hparams.sample_rate:
@@ -353,14 +353,14 @@ def process_utterance(wav: np.ndarray, text: str, out_dir: Path, basename: str,
 
 
 def embed_utterance(fpaths, encoder_model_fpath):
-    if not encoder.is_loaded():
-        encoder.load_model(encoder_model_fpath)
+    if not encoder_infer.is_loaded():
+        encoder_infer.load_model(encoder_model_fpath)
 
     # Compute the speaker embedding of the utterance
     wav_fpath, embed_fpath = fpaths
     wav = np.load(wav_fpath)
-    wav = encoder.preprocess_wav(wav)
-    embed = encoder.embed_utterance(wav)
+    wav = encoder_infer.preprocess_wav(wav)
+    embed = encoder_infer.embed_utterance(wav)
     np.save(embed_fpath, embed, allow_pickle=False)
 
 

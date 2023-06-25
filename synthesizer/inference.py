@@ -1,6 +1,6 @@
 import torch
 from synthesizer import audio
-from synthesizer.hparams import hparams
+from synthesizer.hparams import syn_hparams
 from synthesizer.models.tacotron import Tacotron
 from synthesizer.utils.symbols import symbols
 from synthesizer.utils.text import text_to_sequence
@@ -11,9 +11,9 @@ import numpy as np
 import librosa
 
 
-class Synthesizer:
-    sample_rate = hparams.sample_rate
-    hparams = hparams
+class Synthesizer_infer:
+    sample_rate = syn_hparams.sample_rate
+    hparams = syn_hparams
 
     def __init__(self, model_fpath: Path, verbose=True):
         """
@@ -46,20 +46,20 @@ class Synthesizer:
         """
         Instantiates and loads the model given the weights file that was passed in the constructor.
         """
-        self._model = Tacotron(embed_dims=hparams.tts_embed_dims,
+        self._model = Tacotron(embed_dims=syn_hparams.tts_embed_dims,
                                num_chars=len(symbols),
-                               encoder_dims=hparams.tts_encoder_dims,
-                               decoder_dims=hparams.tts_decoder_dims,
-                               n_mels=hparams.num_mels,
-                               fft_bins=hparams.num_mels,
-                               postnet_dims=hparams.tts_postnet_dims,
-                               encoder_K=hparams.tts_encoder_K,
-                               lstm_dims=hparams.tts_lstm_dims,
-                               postnet_K=hparams.tts_postnet_K,
-                               num_highways=hparams.tts_num_highways,
-                               dropout=hparams.tts_dropout,
-                               stop_threshold=hparams.tts_stop_threshold,
-                               speaker_embedding_size=hparams.speaker_embedding_size).to(self.device)
+                               encoder_dims=syn_hparams.tts_encoder_dims,
+                               decoder_dims=syn_hparams.tts_decoder_dims,
+                               n_mels=syn_hparams.num_mels,
+                               fft_bins=syn_hparams.num_mels,
+                               postnet_dims=syn_hparams.tts_postnet_dims,
+                               encoder_K=syn_hparams.tts_encoder_K,
+                               lstm_dims=syn_hparams.tts_lstm_dims,
+                               postnet_K=syn_hparams.tts_postnet_K,
+                               num_highways=syn_hparams.tts_num_highways,
+                               dropout=syn_hparams.tts_dropout,
+                               stop_threshold=syn_hparams.tts_stop_threshold,
+                               speaker_embedding_size=syn_hparams.speaker_embedding_size).to(self.device)
 
         self._model.load(self.model_fpath)
         self._model.eval()
@@ -91,10 +91,10 @@ class Synthesizer:
             embeddings = [embeddings]
 
         # Batch inputs
-        batched_inputs = [inputs[i:i+hparams.synthesis_batch_size]
-                             for i in range(0, len(inputs), hparams.synthesis_batch_size)]
-        batched_embeds = [embeddings[i:i+hparams.synthesis_batch_size]
-                             for i in range(0, len(embeddings), hparams.synthesis_batch_size)]
+        batched_inputs = [inputs[i:i+syn_hparams.synthesis_batch_size]
+                             for i in range(0, len(inputs), syn_hparams.synthesis_batch_size)]
+        batched_embeds = [embeddings[i:i+syn_hparams.synthesis_batch_size]
+                             for i in range(0, len(embeddings), syn_hparams.synthesis_batch_size)]
 
         specs = []
         for i, batch in enumerate(batched_inputs, 1):
@@ -121,12 +121,12 @@ class Synthesizer:
             stop_tokens = stop_tokens.detach().cpu().numpy()
             for m in mels:
                 # Trim silence from end of each spectrogram
-                while np.max(m[:, -1]) < hparams.tts_stop_threshold:
+                while np.max(m[:, -1]) < syn_hparams.tts_stop_threshold:
                     if m.shape[-1] == 1:
                         break
                     m = m[:, :-1]
                 # Trim silence from start of each spectrogram
-                while np.max(m[:, 0]) < hparams.tts_start_threshold:
+                while np.max(m[:, 0]) < syn_hparams.tts_start_threshold:
                     if m.shape[-1] == 1:
                         break
                     m = m[:, 1:]
@@ -142,9 +142,9 @@ class Synthesizer:
         Loads and preprocesses an audio file under the same conditions the audio files were used to
         train the synthesizer.
         """
-        wav = librosa.load(str(fpath), hparams.sample_rate)[0]
-        if hparams.rescale:
-            wav = wav / np.abs(wav).max() * hparams.rescaling_max
+        wav = librosa.load(str(fpath), syn_hparams.sample_rate)[0]
+        if syn_hparams.rescale:
+            wav = wav / np.abs(wav).max() * syn_hparams.rescaling_max
         return wav
 
     @staticmethod
@@ -154,11 +154,11 @@ class Synthesizer:
         were fed to the synthesizer when training.
         """
         if isinstance(fpath_or_wav, str) or isinstance(fpath_or_wav, Path):
-            wav = Synthesizer.load_preprocess_wav(fpath_or_wav)
+            wav = Synthesizer_infer.load_preprocess_wav(fpath_or_wav)
         else:
             wav = fpath_or_wav
 
-        mel_spectrogram = audio.melspectrogram(wav, hparams).astype(np.float32)
+        mel_spectrogram = audio.melspectrogram(wav, syn_hparams).astype(np.float32)
         return mel_spectrogram
 
     @staticmethod
@@ -167,7 +167,7 @@ class Synthesizer:
         Inverts a mel spectrogram using Griffin-Lim. The mel spectrogram is expected to have been built
         with the same parameters present in hparams.py.
         """
-        return audio.inv_mel_spectrogram(mel, hparams)
+        return audio.inv_mel_spectrogram(mel, syn_hparams)
 
 
 def pad1d(x, max_len, pad_value=0):
