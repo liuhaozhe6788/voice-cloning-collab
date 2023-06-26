@@ -224,9 +224,9 @@ class Toolbox:
         # Plot it
         self.ui.draw_embed(speaker_embed, emotion_embed, name, "current")
         self.ui.draw_umap_projections(self.utterances)
-        self.ui.wav_ori_fig.savefig(f"toolbox_results/{name}_info.png", dpi=300)
+        self.ui.wav_ori_fig.savefig(f"toolbox_results/{name}_info.png", dpi=500)
         if len(self.utterances) >= self.ui.min_umap_points:
-            self.ui.umap_fig.savefig(f"toolbox_results/umap_{len(self.utterances)}.png", dpi=300)
+            self.ui.umap_fig.savefig(f"toolbox_results/umap_{len(self.utterances)}.png", dpi=500)
 
     def clear_utterances(self):
         self.utterances.clear()
@@ -380,9 +380,9 @@ class Toolbox:
         # Plot it
         self.ui.draw_embed(speaker_embed, emotion_embed, name, "generated")
         self.ui.draw_umap_projections(self.utterances)
-        self.ui.wav_gen_fig.savefig(f"toolbox_results/{name}_info.png", dpi=300)
+        self.ui.wav_gen_fig.savefig(f"toolbox_results/{name}_info.png", dpi=500)
         if len(self.utterances) >= self.ui.min_umap_points:
-            self.ui.umap_fig.savefig(f"toolbox_results/umap_{len(self.utterances)}.png", dpi=300)
+            self.ui.umap_fig.savefig(f"toolbox_results/umap_{len(self.utterances)}.png", dpi=500)
         os.remove(fix_file)
 
     def init_speaker_encoder(self):
