@@ -14,7 +14,7 @@ from tqdm import tqdm
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--test_path', type=str, default='saved_models/default/INTERSECT_46_dilation_8_dropout_05_add_esd_npairLoss')
-parser.add_argument('--data', type=str, default='RAVDE')
+parser.add_argument('--data', type=str, default='ESD_test')
 parser.add_argument('--lr', type=float, default=0.001)
 parser.add_argument('--beta1', type=float, default=0.93)
 parser.add_argument('--beta2', type=float, default=0.98)
@@ -71,27 +71,27 @@ x_feats = model.infer(x_source, model_dir=args.test_path)
 
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
+import umap
 import pandas as pd
 import seaborn as sns
  
-# We want to get TSNE embedding with 2 dimensions
-n_components = 2
-tsne = TSNE(n_components)
-tsne_result = tsne.fit_transform(x_feats)
-print(tsne_result.shape)
+# We want to get UMAP embedding with 2 dimensions
+reducer = umap.UMAP(int(np.ceil(np.sqrt(y_source.size))), metric="cosine")
+umap_result = reducer.fit_transform(x_feats)
+print(umap_result.shape)
 # (1000, 2)
 # Two dimensions for each of our images
  
-# Plot the result of our TSNE with the label color coded
+# Plot the result of our UMAP with the label color coded
 # A lot of the stuff here is about making the plot look pretty and not TSNE
-tsne_result_df = pd.DataFrame({'x': tsne_result[:,0], 'y': tsne_result[:,1], 'label': y_source})
-tsne_result_df["label"]=tsne_result_df["label"].apply(lambda x:RAVDE_CLASS_LABELS[x])
+umap_result_df = pd.DataFrame({'x': umap_result[:,0], 'y': umap_result[:,1], 'label': y_source})
+umap_result_df["label"]=umap_result_df["label"].apply(lambda x:ESD_CLASS_LABELS[x])
 fig, ax = plt.subplots(1)
-sns.scatterplot(x='x', y='y', hue='label', data=tsne_result_df, ax=ax,s=40)
-lim = (tsne_result.min()-5, tsne_result.max()+5)
+sns.scatterplot(x='x', y='y', hue='label', data=umap_result_df, ax=ax,s=40)
+lim = (umap_result.min()-5, umap_result.max()+5)
 ax.set_xlim(lim)
 ax.set_ylim(lim)
 ax.set_aspect('equal')
 ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0)
-ax.set_title('T-NSE visualization of emotion speech test dataset')
-plt.savefig("t-nse.png", dpi=500)
+ax.set_title('UMAP visualization of emotion speech test dataset')
+plt.savefig("umap.png", dpi=500)

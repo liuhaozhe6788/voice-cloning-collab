@@ -120,7 +120,6 @@ class UI(QDialog):
             speaker_umap_ax.text(.5, .5, "Add %d more points to\ngenerate the projections" %
                               (self.min_umap_points - len(utterances)),
                               horizontalalignment='center', fontsize=15)
-            speaker_umap_ax.set_title("")
 
         # Compute the projections
         else:
@@ -163,8 +162,7 @@ class UI(QDialog):
             emotion_umap_ax.text(.5, .5, "Add %d more points to\ngenerate the projections" %
                               (self.min_umap_points - len(utterances)),
                               horizontalalignment='center', fontsize=15)
-            emotion_umap_ax.set_title("")
-
+            
         # Compute the projections
         else:
             if not self.umap_hot:
@@ -183,9 +181,7 @@ class UI(QDialog):
             for x, y, c, m in zip(projections[:, 0], projections[:,1], colors, markers):
                 i+=1
                 emotion_umap_ax.scatter(x=x, y=y, c=c, marker=m)
-                self.set_loading(i, projections.shape[0])
-            self.set_loading(0)
-
+            # speaker_umap_ax.legend(prop={'size': 10})
 
         # Draw the plot
         emotion_umap_ax.set_aspect("equal", "datalim")
@@ -521,9 +517,9 @@ class UI(QDialog):
 
         ## Projections
         # UMap
-        fig, self.umap_ax = plt.subplots(2, 1, figsize=(3, 3), facecolor="#F0F0F0")
-        fig.subplots_adjust(left=0.02, bottom=0.02, right=0.98, top=0.98)
-        self.projections_layout.addWidget(FigureCanvas(fig))
+        self.umap_fig, self.umap_ax = plt.subplots(2, 1, figsize=(3, 3), facecolor="#F0F0F0")
+        self.umap_fig.subplots_adjust(left=0.02, bottom=0.02, right=0.98, top=0.98)
+        self.projections_layout.addWidget(FigureCanvas(self.umap_fig))
         self.umap_hot = False
         self.clear_button = QPushButton("Clear")
         self.projections_layout.addWidget(self.clear_button)
@@ -613,16 +609,16 @@ class UI(QDialog):
         ## Embed & spectrograms
         vis_layout.addStretch()
 
-        gridspec_kw = {"width_ratios": [1, 1, 3]}
-        fig, self.current_ax = plt.subplots(1, 3, figsize=(10, 2.25), facecolor="#F0F0F0",
+        gridspec_kw = {"width_ratios": [1, 1, 4]}
+        self.wav_ori_fig, self.current_ax = plt.subplots(1, 3, figsize=(10, 2.25), facecolor="#F0F0F0",
                                             gridspec_kw=gridspec_kw)
-        fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
-        vis_layout.addWidget(FigureCanvas(fig))
+        self.wav_ori_fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
+        vis_layout.addWidget(FigureCanvas(self.wav_ori_fig))
 
-        fig, self.gen_ax = plt.subplots(1, 3, figsize=(10, 2.25), facecolor="#F0F0F0",
+        self.wav_gen_fig, self.gen_ax = plt.subplots(1, 3, figsize=(10, 2.25), facecolor="#F0F0F0",
                                         gridspec_kw=gridspec_kw)
-        fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
-        vis_layout.addWidget(FigureCanvas(fig))
+        self.wav_gen_fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
+        vis_layout.addWidget(FigureCanvas(self.wav_gen_fig))
 
         for ax in self.current_ax.tolist() + self.gen_ax.tolist():
             ax.set_facecolor("#F0F0F0")

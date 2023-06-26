@@ -20,6 +20,7 @@ from emotion_encoder.utils import get_mfcc
 from speaker_encoder import inference as speaker_encoder_infer
 from synthesizer.inference import Synthesizer_infer
 from synthesizer.utils.cleaners import add_breaks, english_cleaners_predict
+from vocoder.display import save_attention_multiple, save_spectrogram, save_stop_tokens
 from synthesizer.hparams import syn_hparams
 from toolbox.ui import UI
 from toolbox.utterance import Utterance
@@ -70,6 +71,9 @@ class Toolbox:
         self.waves_namelist = []
         self.start_generate_time = None
         self.nlp = spacy.load('en_core_web_sm')
+
+        if not os.path.exists("toolbox_results"):
+            os.mkdir("toolbox_results")
 
         # Check for webrtcvad (enables removal of silences in vocoder output)
         try:
@@ -220,6 +224,9 @@ class Toolbox:
         # Plot it
         self.ui.draw_embed(speaker_embed, emotion_embed, name, "current")
         self.ui.draw_umap_projections(self.utterances)
+        self.ui.wav_ori_fig.savefig(f"toolbox_results/{name}_info.png", dpi=300)
+        if len(self.utterances) >= self.ui.min_umap_points:
+            self.ui.umap_fig.savefig(f"toolbox_results/umap_{len(self.utterances)}.png", dpi=300)
 
     def clear_utterances(self):
         self.utterances.clear()
@@ -262,6 +269,9 @@ class Toolbox:
 
         breaks = [spec.shape[1] for spec in specs]
         spec = np.concatenate(specs, axis=1)
+
+        save_attention_multiple(alignments, "toolbox_results/attention")
+        save_stop_tokens(stop_tokens, "toolbox_results/stop_tokens")
 
         self.ui.draw_spec(spec, "generated")
         self.current_generated = (self.ui.selected_utterance.speaker_name, spec, breaks, None)
@@ -370,6 +380,9 @@ class Toolbox:
         # Plot it
         self.ui.draw_embed(speaker_embed, emotion_embed, name, "generated")
         self.ui.draw_umap_projections(self.utterances)
+        self.ui.wav_gen_fig.savefig(f"toolbox_results/{name}_info.png", dpi=300)
+        if len(self.utterances) >= self.ui.min_umap_points:
+            self.ui.umap_fig.savefig(f"toolbox_results/umap_{len(self.utterances)}.png", dpi=300)
         os.remove(fix_file)
 
     def init_speaker_encoder(self):
