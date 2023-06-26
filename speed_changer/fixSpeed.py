@@ -8,8 +8,8 @@ from synthesizer.hparams import syn_hparams
 import soundfile as sf
 from parselmouth.praat import run_file
 
-high_lim_speed_factor = 10.0
-low_lim_speed_factor = 0.1
+high_lim_speed_factor = 1.5
+low_lim_speed_factor = 0.5
 
 def AudioAnalysis(dir, file):
     sound = os.path.join(dir, file) 
@@ -48,13 +48,13 @@ def FixSpeed(totDur_ori: float,
 
     if arRate_syn == 0:
         print("exception!\n The speed factor is abnormal")
-        return audio_syn
+        return audio_syn, speed_factor
     speed_factor = round(arRate_ori/arRate_syn, 2)
     print(f"speed_factor = {speed_factor}")
     if speed_factor > high_lim_speed_factor or\
        speed_factor < low_lim_speed_factor:
         print("exception!\n The speed factor is abnormal")
-        return audio_syn
+        return audio_syn, speed_factor
     else:
         out_file = os.path.join(path_syn, name_syn + "_{}".format(speed_factor) + suffix_syn)
         audio.a_speed(audio_syn, speed_factor, out_file)

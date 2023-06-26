@@ -5,7 +5,9 @@ from typing import List, Set
 from warnings import filterwarnings, warn
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
+import pandas as pd
 import sounddevice as sd
 import soundfile as sf
 import umap
@@ -37,9 +39,7 @@ colormap = np.array([
 ], dtype=np.float) / 255
 
 default_text = \
-    "The North Wind and the Sun were disputing which was the stronger, "\
-    "when a traveler came along wrapped in a warm cloak."
-
+    "We have to reduce the number of plastic bags."
 
 
 class UI(QDialog):
@@ -49,30 +49,45 @@ class UI(QDialog):
 
     def draw_utterance(self, utterance: Utterance, which):
         self.draw_spec(utterance.spec, which)
-        self.draw_embed(utterance.embed, utterance.name, which)
+        self.draw_embed(utterance.speaker_embed, utterance.emotion_embed, utterance.name, which)
 
-    def draw_embed(self, embed, name, which):
-        # TODO: draw emotion embeddings
-        embed_ax, _ = self.current_ax if which == "current" else self.gen_ax
-        embed_ax.figure.suptitle("" if embed is None else name)
+    def draw_embed(self, speaker_embed, emotion_embed, name, which):
+        speaker_embed_ax, emotion_embed_ax, _ = self.current_ax if which == "current" else self.gen_ax
+        speaker_embed_ax.figure.suptitle("" if speaker_embed is None else name)
+        emotion_embed_ax.figure.suptitle("" if emotion_embed is None else name)
 
-        ## Embedding
+        ## Speaker Embedding
         # Clear the plot
-        if len(embed_ax.images) > 0:
-            embed_ax.images[0].colorbar.remove()
-        embed_ax.clear()
+        if len(speaker_embed_ax.images) > 0:
+            speaker_embed_ax.images[0].colorbar.remove()
+        speaker_embed_ax.clear()
 
         # Draw the embed
-        if embed is not None:
-            plot_embedding_as_heatmap(embed, embed_ax)
-            embed_ax.set_title("embedding")
-        embed_ax.set_aspect("equal", "datalim")
-        embed_ax.set_xticks([])
-        embed_ax.set_yticks([])
-        embed_ax.figure.canvas.draw()
+        if speaker_embed is not None:
+            plot_embedding_as_heatmap(speaker_embed, speaker_embed_ax)
+            speaker_embed_ax.set_title("speaker embed")
+        speaker_embed_ax.set_aspect("equal", "datalim")
+        speaker_embed_ax.set_xticks([])
+        speaker_embed_ax.set_yticks([])
+        speaker_embed_ax.figure.canvas.draw()
+
+        ## Emotion Embedding
+        # Clear the plot
+        if len(emotion_embed_ax.images) > 0:
+            emotion_embed_ax.images[0].colorbar.remove()
+        emotion_embed_ax.clear()
+
+        # Draw the embed
+        if emotion_embed is not None:
+            plot_embedding_as_heatmap(emotion_embed, emotion_embed_ax, shape=(13, 3))
+            emotion_embed_ax.set_title("emotion embed")
+        emotion_embed_ax.set_aspect("equal", "datalim")
+        emotion_embed_ax.set_xticks([])
+        emotion_embed_ax.set_yticks([])
+        emotion_embed_ax.figure.canvas.draw()
 
     def draw_spec(self, spec, which):
-        _, spec_ax = self.current_ax if which == "current" else self.gen_ax
+        _, _, spec_ax = self.current_ax if which == "current" else self.gen_ax
 
         ## Spectrogram
         # Draw the spectrogram
@@ -88,19 +103,22 @@ class UI(QDialog):
             self.vocode_button.setDisabled(spec is None)
 
     def draw_umap_projections(self, utterances: Set[Utterance]):
-        # TODO: draw emotion embeddings umap 
-        self.umap_ax.clear()
+        speaker_umap_ax, emotion_umap_ax = self.umap_ax
 
+        # draw speaker embeddings umap 
+        speaker_umap_ax.clear()
+
+        utterances = list(utterances)
         speakers = np.unique([u.speaker_name for u in utterances])
         colors = {speaker_name: colormap[i] for i, speaker_name in enumerate(speakers)}
         embeds = [u.speaker_embed for u in utterances]
 
         # Display a message if there aren't enough points
         if len(utterances) < self.min_umap_points:
-            self.umap_ax.text(.5, .5, "Add %d more points to\ngenerate the projections" %
+            speaker_umap_ax.text(.5, .5, "Add %d more points to\ngenerate the projections" %
                               (self.min_umap_points - len(utterances)),
                               horizontalalignment='center', fontsize=15)
-            self.umap_ax.set_title("")
+            speaker_umap_ax.set_title("")
 
         # Compute the projections
         else:
@@ -112,21 +130,58 @@ class UI(QDialog):
             reducer = umap.UMAP(int(np.ceil(np.sqrt(len(embeds)))), metric="cosine")
             projections = reducer.fit_transform(embeds)
 
-            speakers_done = set()
-            for projection, utterance in zip(projections, utterances):
-                color = colors[utterance.speaker_name]
-                mark = "x" if "_gen_" in utterance.name else "o"
-                label = None if utterance.speaker_name in speakers_done else utterance.speaker_name
-                speakers_done.add(utterance.speaker_name)
-                self.umap_ax.scatter(projection[0], projection[1], c=[color], marker=mark,
-                                     label=label)
-            self.umap_ax.legend(prop={'size': 10})
+            colors = [colors[u.speaker_name] for u in utterances]
+            markers = ["x" if "_gen_" in u.name else "o" for u in utterances]
+            # labels = [u.speaker_name for u in utterances]
+            # speakers_done.add(utterance.speaker_name)
+            for x, y, c, m in zip(projections[:, 0], projections[:,1], colors, markers):
+                speaker_umap_ax.scatter(x=x, y=y, c=c, marker=m)
+            # speaker_umap_ax.legend(prop={'size': 10})
 
         # Draw the plot
-        self.umap_ax.set_aspect("equal", "datalim")
-        self.umap_ax.set_xticks([])
-        self.umap_ax.set_yticks([])
-        self.umap_ax.figure.canvas.draw()
+        speaker_umap_ax.set_aspect("equal", "datalim")
+        speaker_umap_ax.set_xticks([])
+        speaker_umap_ax.set_yticks([])
+        speaker_umap_ax.figure.canvas.draw()
+
+        # draw emotion embeddings umap 
+        emotion_umap_ax.clear()
+
+        utterances = list(utterances)
+        speakers = np.unique([u.speaker_name for u in utterances])
+        colors = {speaker_name: colormap[i] for i, speaker_name in enumerate(speakers)}
+        embeds = [u.emotion_embed for u in utterances]
+
+        # Display a message if there aren't enough points
+        if len(utterances) < self.min_umap_points:
+            emotion_umap_ax.text(.5, .5, "Add %d more points to\ngenerate the projections" %
+                              (self.min_umap_points - len(utterances)),
+                              horizontalalignment='center', fontsize=15)
+            emotion_umap_ax.set_title("")
+
+        # Compute the projections
+        else:
+            if not self.umap_hot:
+                self.log(
+                    "Drawing UMAP projections for the first time, this will take a few seconds.")
+                self.umap_hot = True
+
+            reducer = umap.UMAP(int(np.ceil(np.sqrt(len(embeds)))), metric="cosine")
+            projections = reducer.fit_transform(embeds)
+
+            colors = [colors[u.speaker_name] for u in utterances]
+            markers = ["x" if "_gen_" in u.name else "o" for u in utterances]
+            # labels = [u.speaker_name for u in utterances]
+            # speakers_done.add(utterance.speaker_name)
+            for x, y, c, m in zip(projections[:, 0], projections[:,1], colors, markers):
+                emotion_umap_ax.scatter(x=x, y=y, c=c, marker=m)
+            # speaker_umap_ax.legend(prop={'size': 10})
+
+        # Draw the plot
+        emotion_umap_ax.set_aspect("equal", "datalim")
+        emotion_umap_ax.set_xticks([])
+        emotion_umap_ax.set_yticks([])
+        emotion_umap_ax.figure.canvas.draw()
 
     def save_audio_file(self, wav, sample_rate):
         dialog = QFileDialog()
@@ -411,8 +466,8 @@ class UI(QDialog):
             self.seed_textbox.setEnabled(False)
 
     def reset_interface(self):
-        self.draw_embed(None, None, "current")
-        self.draw_embed(None, None, "generated")
+        self.draw_embed(None, None, None, "current")
+        self.draw_embed(None, None, None, "generated")
         self.draw_spec(None, "current")
         self.draw_spec(None, "generated")
         self.draw_umap_projections(set())
@@ -456,7 +511,7 @@ class UI(QDialog):
 
         ## Projections
         # UMap
-        fig, self.umap_ax = plt.subplots(figsize=(3, 3), facecolor="#F0F0F0")
+        fig, self.umap_ax = plt.subplots(2, 1, figsize=(3, 3), facecolor="#F0F0F0")
         fig.subplots_adjust(left=0.02, bottom=0.02, right=0.98, top=0.98)
         self.projections_layout.addWidget(FigureCanvas(fig))
         self.umap_hot = False
@@ -548,13 +603,13 @@ class UI(QDialog):
         ## Embed & spectrograms
         vis_layout.addStretch()
 
-        gridspec_kw = {"width_ratios": [1, 4]}
-        fig, self.current_ax = plt.subplots(1, 2, figsize=(10, 2.25), facecolor="#F0F0F0",
+        gridspec_kw = {"width_ratios": [1, 1, 3]}
+        fig, self.current_ax = plt.subplots(1, 3, figsize=(10, 2.25), facecolor="#F0F0F0",
                                             gridspec_kw=gridspec_kw)
         fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
         vis_layout.addWidget(FigureCanvas(fig))
 
-        fig, self.gen_ax = plt.subplots(1, 2, figsize=(10, 2.25), facecolor="#F0F0F0",
+        fig, self.gen_ax = plt.subplots(1, 3, figsize=(10, 2.25), facecolor="#F0F0F0",
                                         gridspec_kw=gridspec_kw)
         fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
         vis_layout.addWidget(FigureCanvas(fig))

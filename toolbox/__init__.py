@@ -167,7 +167,7 @@ class Toolbox:
             return
         else:
             name = fpath.name
-            speaker_name = fpath.parent.name
+            speaker_name = fpath.stem
 
         # Get the wav from the disk. We take the wav with the vocoder/synthesizer format for
         # playback, so as to have a fair comparison with the generated audio
@@ -218,7 +218,7 @@ class Toolbox:
         self.ui.register_utterance(utterance)
 
         # Plot it
-        self.ui.draw_embed(speaker_embed, name, "current")
+        self.ui.draw_embed(speaker_embed, emotion_embed, name, "current")
         self.ui.draw_umap_projections(self.utterances)
 
     def clear_utterances(self):
@@ -322,7 +322,6 @@ class Toolbox:
         fix_file, speed_factor = work(*self.wav_ori_info, filename)
         self.ui.log(f"\nSaved output (fixed speed) as {fix_file}\n\n")
         wav, _ = librosa.load(fix_file, syn_hparams.sample_rate)
-        os.remove(fix_file)
 
         # Play it
         wav = wav / np.abs(wav).max() * 4
@@ -369,8 +368,9 @@ class Toolbox:
         self.utterances.add(utterance)
 
         # Plot it
-        self.ui.draw_embed(speaker_embed, name, "generated")
+        self.ui.draw_embed(speaker_embed, emotion_embed, name, "generated")
         self.ui.draw_umap_projections(self.utterances)
+        os.remove(fix_file)
 
     def init_speaker_encoder(self):
         model_fpath = self.ui.current_speaker_encoder_fpath
