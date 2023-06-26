@@ -60,7 +60,7 @@ def FixSpeed(totDur_ori: float,
         audio.a_speed(audio_syn, speed_factor, out_file)
         os.remove(audio_syn)  # remove intermediate wav files
         print(f"Finished!\nThe path of out_file is {out_file}")
-    return out_file
+    return out_file, speed_factor
 
 
 def TransFormat(fullpath, out_suffix):
@@ -92,7 +92,7 @@ def work(totDur_ori: float,
          nSyl_ori: int, 
          arRate_ori: float, 
          audio_syn):
-    fix_file = FixSpeed(totDur_ori, 
+    fix_file, speed_factor = FixSpeed(totDur_ori, 
                         nPause_ori, 
                         arDur_ori, 
                         nSyl_ori, 
@@ -101,6 +101,6 @@ def work(totDur_ori: float,
     # DelFile(in_path, '.TextGrid')
     out_path, _ = os.path.split(audio_syn)
     DelFile(out_path, '.TextGrid')
-    return fix_file
+    return fix_file, speed_factor
 
 

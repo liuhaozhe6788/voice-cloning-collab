@@ -8,6 +8,7 @@ import os
 import numpy as np
 import torch
 import soundfile as sf
+import librosa
 import spacy
 import tensorflow as tf
 import argparse
@@ -23,6 +24,7 @@ from synthesizer.hparams import syn_hparams
 from toolbox.ui import UI
 from toolbox.utterance import Utterance
 from vocoder import inference as vocoder
+from speed_changer.fixSpeed import *
 import time
 
 
@@ -189,6 +191,16 @@ class Toolbox:
         spec = Synthesizer_infer.make_spectrogram(wav)
         self.ui.draw_spec(spec, "current")
 
+        path_ori = os.getcwd()
+        file_ori = 'temp.wav'
+        fpath = os.path.join(path_ori, file_ori)
+        sf.write(fpath, wav, samplerate=speaker_encoder.params_data.sampling_rate)
+
+        # adjust the speed
+        self.wav_ori_info = AudioAnalysis(path_ori, file_ori)
+        DelFile(path_ori, '.TextGrid')
+        os.remove(fpath)
+
         # Compute the speaker embedding
         if not speaker_encoder_infer.is_loaded():
             self.init_speaker_encoder()
@@ -300,6 +312,18 @@ class Toolbox:
         if self.ui.trim_silences_checkbox.isChecked():
             wav = speaker_encoder_infer.preprocess_wav(wav)
 
+        path_ori = os.getcwd()
+        file_ori = 'temp.wav'
+        filename = os.path.join(path_ori, file_ori)
+        sf.write(filename, wav.astype(np.float32), syn_hparams.sample_rate)
+        self.ui.log("\nSaved output (haven't change speed) as %s\n\n" % filename)
+
+        # Fix Speed(generate new audio)
+        fix_file, speed_factor = work(*self.wav_ori_info, filename)
+        self.ui.log(f"\nSaved output (fixed speed) as {fix_file}\n\n")
+        wav, _ = librosa.load(fix_file, syn_hparams.sample_rate)
+        os.remove(fix_file)
+
         # Play it
         wav = wav / np.abs(wav).max() * 4
         self.ui.play(wav, Synthesizer_infer.sample_rate)
@@ -340,7 +364,7 @@ class Toolbox:
         emotion_embed = self.emotion_encoder.infer(np.array([mfcc]), model_dir=os.path.dirname(self.ui.current_emotion_encoder_fpath))[0]
 
         # Add the utterance
-        name = speaker_name + "_gen_%05d" % np.random.randint(100000)
+        name = speaker_name + "_gen_%05d_" % np.random.randint(100000) + str(speed_factor)
         utterance = Utterance(name, speaker_name, wav, spec, speaker_embed, emotion_embed, partial_embeds, True)
         self.utterances.add(utterance)
 

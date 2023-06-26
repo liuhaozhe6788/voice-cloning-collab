@@ -52,6 +52,7 @@ class UI(QDialog):
         self.draw_embed(utterance.embed, utterance.name, which)
 
     def draw_embed(self, embed, name, which):
+        # TODO: draw emotion embeddings
         embed_ax, _ = self.current_ax if which == "current" else self.gen_ax
         embed_ax.figure.suptitle("" if embed is None else name)
 
@@ -87,6 +88,7 @@ class UI(QDialog):
             self.vocode_button.setDisabled(spec is None)
 
     def draw_umap_projections(self, utterances: Set[Utterance]):
+        # TODO: draw emotion embeddings umap 
         self.umap_ax.clear()
 
         speakers = np.unique([u.speaker_name for u in utterances])
