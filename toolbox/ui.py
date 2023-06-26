@@ -449,12 +449,13 @@ class UI(QDialog):
 
         ## Projections
         # UMap
-        fig, self.umap_ax = plt.subplots(figsize=(3, 3), facecolor="#F0F0F0")
-        fig.subplots_adjust(left=0.02, bottom=0.02, right=0.98, top=0.98)
-        self.projections_layout.addWidget(FigureCanvas(fig))
+        self.umap_fig, self.umap_ax = plt.subplots(1, 1, figsize=(3, 3), facecolor="#F0F0F0")
+        self.umap_fig.subplots_adjust(left=0.02, bottom=0.02, right=0.98, top=0.9)
+        self.projections_layout.addWidget(FigureCanvas(self.umap_fig))
         self.umap_hot = False
         self.clear_button = QPushButton("Clear")
         self.projections_layout.addWidget(self.clear_button)
+
 
 
         ## Browser
@@ -539,15 +540,15 @@ class UI(QDialog):
         vis_layout.addStretch()
 
         gridspec_kw = {"width_ratios": [1, 4]}
-        fig, self.current_ax = plt.subplots(1, 2, figsize=(10, 2.25), facecolor="#F0F0F0",
+        self.wav_ori_fig, self.current_ax = plt.subplots(1, 2, figsize=(10, 2.25), facecolor="#F0F0F0",
                                             gridspec_kw=gridspec_kw)
-        fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
-        vis_layout.addWidget(FigureCanvas(fig))
+        self.wav_ori_fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
+        vis_layout.addWidget(FigureCanvas(self.wav_ori_fig))
 
-        fig, self.gen_ax = plt.subplots(1, 2, figsize=(10, 2.25), facecolor="#F0F0F0",
+        self.wav_gen_fig, self.gen_ax = plt.subplots(1, 2, figsize=(10, 2.25), facecolor="#F0F0F0",
                                         gridspec_kw=gridspec_kw)
-        fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
-        vis_layout.addWidget(FigureCanvas(fig))
+        self.wav_gen_fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
+        vis_layout.addWidget(FigureCanvas(self.wav_gen_fig))
 
         for ax in self.current_ax.tolist() + self.gen_ax.tolist():
             ax.set_facecolor("#F0F0F0")
@@ -599,7 +600,7 @@ class UI(QDialog):
 
 
         ## Set the size of the window and of the elements
-        max_size = QDesktopWidget().availableGeometry(self).size() * 0.8
+        max_size = QDesktopWidget().availableGeometry(self).size() 
         self.resize(max_size)
 
         ## Finalize the display
