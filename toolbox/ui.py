@@ -520,7 +520,7 @@ class UI(QDialog):
         ## Projections
         # UMap
         self.umap_fig, self.umap_ax = plt.subplots(2, 1, figsize=(3, 3), facecolor="#F0F0F0")
-        self.umap_fig.subplots_adjust(left=0.02, bottom=0.02, right=0.98, top=0.98)
+        self.umap_fig.subplots_adjust(left=0.02, bottom=0.02, right=0.98, top=0.9)
         self.projections_layout.addWidget(FigureCanvas(self.umap_fig))
         self.umap_hot = False
         self.clear_button = QPushButton("Clear")
@@ -672,7 +672,7 @@ class UI(QDialog):
 
 
         ## Set the size of the window and of the elements
-        max_size = QDesktopWidget().availableGeometry(self).size() * 0.8
+        max_size = QDesktopWidget().availableGeometry(self).size() 
         self.resize(max_size)
 
         ## Finalize the display
