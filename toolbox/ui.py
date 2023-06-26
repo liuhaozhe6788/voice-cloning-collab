@@ -86,6 +86,8 @@ class UI(QDialog):
             self.vocode_button.setDisabled(spec is None)
 
     def draw_umap_projections(self, utterances: Set[Utterance]):
+        def umap_progress(i, seq_len):
+            self.set_loading(i, seq_len)
         self.umap_ax.clear()
 
         speakers = np.unique([u.speaker_name for u in utterances])
@@ -110,14 +112,18 @@ class UI(QDialog):
             projections = reducer.fit_transform(embeds)
 
             speakers_done = set()
+            i = 0
             for projection, utterance in zip(projections, utterances):
+                i+=1
                 color = colors[utterance.speaker_name]
                 mark = "x" if "_gen_" in utterance.name else "o"
                 label = None if utterance.speaker_name in speakers_done else utterance.speaker_name
                 speakers_done.add(utterance.speaker_name)
                 self.umap_ax.scatter(projection[0], projection[1], c=[color], marker=mark,
                                      label=label)
+                self.set_loading(i, projections.shape[0])
             self.umap_ax.legend(prop={'size': 10})
+            self.set_loading(0)
 
         # Draw the plot
         self.umap_ax.set_aspect("equal", "datalim")

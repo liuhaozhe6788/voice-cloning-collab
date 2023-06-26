@@ -208,11 +208,8 @@ class Toolbox:
         self.ui.register_utterance(utterance)
 
         # Plot it
-        self.ui.log("Generating UMAP...")
-        self.ui.set_loading(1)
         self.ui.draw_embed(embed, name, "current")
         self.ui.draw_umap_projections(self.utterances)
-        self.ui.set_loading(0)
 
     def clear_utterances(self):
         self.utterances.clear()
@@ -356,11 +353,8 @@ class Toolbox:
         self.utterances.add(utterance)
 
         # Plot it
-        self.ui.log("Generating UMAP...")
-        self.ui.set_loading(1)
         self.ui.draw_embed(embed, name, "generated")
         self.ui.draw_umap_projections(self.utterances)
-        self.ui.set_loading(0)
 
     def init_encoder(self):
         model_fpath = self.ui.current_encoder_fpath
