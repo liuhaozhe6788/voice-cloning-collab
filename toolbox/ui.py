@@ -37,8 +37,7 @@ colormap = np.array([
 ], dtype=np.float) / 255
 
 default_text = \
-    "The North Wind and the Sun were disputing which was the stronger, "\
-    "when a traveler came along wrapped in a warm cloak."
+    "We have to reduce the number of plastic bags."
 
 
 
