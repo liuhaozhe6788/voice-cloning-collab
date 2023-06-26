@@ -103,6 +103,8 @@ class UI(QDialog):
             self.vocode_button.setDisabled(spec is None)
 
     def draw_umap_projections(self, utterances: Set[Utterance]):
+        def umap_progress(i, seq_len):
+            self.set_loading(i, seq_len)
         speaker_umap_ax, emotion_umap_ax = self.umap_ax
 
         # draw speaker embeddings umap 
@@ -134,9 +136,13 @@ class UI(QDialog):
             markers = ["x" if "_gen_" in u.name else "o" for u in utterances]
             # labels = [u.speaker_name for u in utterances]
             # speakers_done.add(utterance.speaker_name)
+            i = 0
             for x, y, c, m in zip(projections[:, 0], projections[:,1], colors, markers):
+                i+=1
                 speaker_umap_ax.scatter(x=x, y=y, c=c, marker=m)
+                self.set_loading(i, projections.shape[0])
             # speaker_umap_ax.legend(prop={'size': 10})
+            self.set_loading(0)
 
         # Draw the plot
         speaker_umap_ax.set_aspect("equal", "datalim")
@@ -173,9 +179,13 @@ class UI(QDialog):
             markers = ["x" if "_gen_" in u.name else "o" for u in utterances]
             # labels = [u.speaker_name for u in utterances]
             # speakers_done.add(utterance.speaker_name)
+            i = 0
             for x, y, c, m in zip(projections[:, 0], projections[:,1], colors, markers):
+                i+=1
                 emotion_umap_ax.scatter(x=x, y=y, c=c, marker=m)
-            # speaker_umap_ax.legend(prop={'size': 10})
+                self.set_loading(i, projections.shape[0])
+            self.set_loading(0)
+
 
         # Draw the plot
         emotion_umap_ax.set_aspect("equal", "datalim")
