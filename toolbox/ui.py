@@ -140,7 +140,7 @@ class UI(QDialog):
                 i+=1
                 speaker_umap_ax.scatter(x=x, y=y, c=c, marker=m)
                 self.set_loading(i, projections.shape[0])
-            # speaker_umap_ax.legend(prop={'size': 10})
+            speaker_umap_ax.set_title("Speaker Embedding UMAP")
             self.set_loading(0)
 
         # Draw the plot
@@ -181,7 +181,9 @@ class UI(QDialog):
             for x, y, c, m in zip(projections[:, 0], projections[:,1], colors, markers):
                 i+=1
                 emotion_umap_ax.scatter(x=x, y=y, c=c, marker=m)
-            # speaker_umap_ax.legend(prop={'size': 10})
+                self.set_loading(i, projections.shape[0])
+            emotion_umap_ax.set_title("Emotion Embedding UMAP")
+            self.set_loading(0)
 
         # Draw the plot
         emotion_umap_ax.set_aspect("equal", "datalim")
