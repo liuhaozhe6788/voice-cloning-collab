@@ -672,7 +672,7 @@ class UI(QDialog):
 
 
         ## Set the size of the window and of the elements
-        max_size = QDesktopWidget().availableGeometry(self).size() 
+        max_size = QDesktopWidget().availableGeometry(self).size() * 0.8
         self.resize(max_size)
 
         ## Finalize the display
