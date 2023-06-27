@@ -224,7 +224,7 @@ if __name__ == '__main__':
 
         preprocessed_wav = speaker_encoder.inference.preprocess_wav(wav)
 
-        print("Loaded input audio file succesfully")
+        print("Loaded input audio file successfully")
 
         # Then we derive the embedding. There are many functions and parameters that the
         # speaker encoder interfaces. These are mostly for in-depth research. You will typically
@@ -263,7 +263,7 @@ if __name__ == '__main__':
         start_syn = time.time()
         # Generating the spectrogram
         # text = input("Write a sentence to be synthesized:\n")
-        text = "Her face was against his breast"
+        text = "We have to reduce the number of plastic bags"
 
         # If seed is specified, reset torch seed and force synthesizer reload
         if args.seed is not None:
@@ -292,9 +292,9 @@ if __name__ == '__main__':
         ## Save synthesizer visualization results
         if not os.path.exists("syn_results"):
             os.mkdir("syn_results")
-        # save_attention_multiple(alignments, "syn_results/attention")
-        # save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
-        # save_spectrogram(spec, "syn_results/mel")
+        save_attention_multiple(alignments, "syn_results/attention")
+        save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
+        save_spectrogram(spec, "syn_results/mel")
         print("Created the mel spectrogram")
 
         end_syn = time.time()

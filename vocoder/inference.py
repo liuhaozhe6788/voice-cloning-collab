@@ -68,7 +68,7 @@ def infer_waveform(mel, normalize=True,  batched=True, target=8000, overlap=800,
         mel = mel / hp.mel_max_abs_value
     mel = torch.from_numpy(mel[None, ...])
     wav = _model.generate(mel, batched, target, overlap, hp.mu_law, progress_callback, crossfade=crossfade)
-    wav = waveform_denoising(wav)
+    # wav = waveform_denoising(wav)
     return wav
 
 def waveform_denoising(wav):
@@ -82,7 +82,7 @@ def waveform_denoising(wav):
     estimate = model(noisy)
     estimate = estimate * (1-hp.dry) + noisy * hp.dry
     estimate = estimate[0].cpu().detach().numpy()
-    return  np.squeeze(estimate)
+    return  nr.reduce_noise(np.squeeze(estimate), hp.sample_rate, prop_decrease=prop_decrease)
 
 def get_dominant_freq(wav, name="fft"):
     import matplotlib.pyplot as plt
