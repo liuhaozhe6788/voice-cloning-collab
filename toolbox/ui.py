@@ -39,7 +39,7 @@ colormap = np.array([
 ], dtype=np.float) / 255
 
 default_text = \
-    "We have to reduce the number of plastic bags."
+    "I visited museums and sat in public gardens"
 
 
 class UI(QDialog):
