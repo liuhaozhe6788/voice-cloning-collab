@@ -45,6 +45,7 @@ default_text = \
 class UI(QDialog):
     min_umap_points = 4
     max_log_lines = 5
+    max_log_width = 100
     max_saved_utterances = 20
 
     def draw_utterance(self, utterance: Utterance, which):
@@ -435,7 +436,16 @@ class UI(QDialog):
 
     def log(self, line, mode="newline"):
         if mode == "newline":
-            self.logs.append(line)
+            if len(line) > self.max_log_width:
+                num_lines = len(line) // self.max_log_width
+                res = len(line) - (len(line) // self.max_log_width) * self.max_log_width
+                for l in range(num_lines):
+                    self.logs.append(line[l *self.max_log_width : (l+1)*self.max_log_width])
+                    if len(self.logs) > self.max_log_lines:
+                        del self.logs[0]
+                self.logs.append(line[-res-1: ])
+            else:             
+                self.logs.append(line)
             if len(self.logs) > self.max_log_lines:
                 del self.logs[0]
         elif mode == "append":
@@ -506,7 +516,7 @@ class UI(QDialog):
 
         # Generation
         gen_layout = QVBoxLayout()
-        root_layout.addLayout(gen_layout, 0, 2, 1, 2)
+        root_layout.addLayout(gen_layout, 0, 2, 1, 1)
 
         # Projections
         self.projections_layout = QVBoxLayout()
@@ -609,15 +619,15 @@ class UI(QDialog):
 
 
         ## Embed & spectrograms
-        vis_layout.addStretch()
+        # vis_layout.addStretch()
 
-        gridspec_kw = {"width_ratios": [1, 1, 4]}
-        self.wav_ori_fig, self.current_ax = plt.subplots(1, 3, figsize=(10, 2.25), facecolor="#F0F0F0",
+        gridspec_kw = {"width_ratios": [1, 1, 2]}
+        self.wav_ori_fig, self.current_ax = plt.subplots(1, 3, figsize=(6, 2.25), facecolor="#F0F0F0",
                                             gridspec_kw=gridspec_kw)
         self.wav_ori_fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
         vis_layout.addWidget(FigureCanvas(self.wav_ori_fig))
 
-        self.wav_gen_fig, self.gen_ax = plt.subplots(1, 3, figsize=(10, 2.25), facecolor="#F0F0F0",
+        self.wav_gen_fig, self.gen_ax = plt.subplots(1, 3, figsize=(6, 2.25), facecolor="#F0F0F0",
                                         gridspec_kw=gridspec_kw)
         self.wav_gen_fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
         vis_layout.addWidget(FigureCanvas(self.wav_gen_fig))
@@ -630,7 +640,7 @@ class UI(QDialog):
 
         ## Generation
         self.text_prompt = QPlainTextEdit(default_text)
-        gen_layout.addWidget(self.text_prompt, stretch=1)
+        gen_layout.addWidget(self.text_prompt)
 
         self.generate_button = QPushButton("Synthesize and vocode")
         gen_layout.addWidget(self.generate_button)
@@ -653,11 +663,10 @@ class UI(QDialog):
         self.trim_silences_checkbox.setChecked(False)
         self.trim_silences_checkbox.setToolTip("When checked, trims excess silence in vocoder output."
             " This feature requires `webrtcvad` to be installed.")
-        layout_seed.addWidget(self.trim_silences_checkbox, 0, 2, 1, 2)
+        layout_seed.addWidget(self.trim_silences_checkbox, 0, 2)
         self.griffin_lim_checkbox = QCheckBox("Griffin-Lim as vocoder")
         self.griffin_lim_checkbox.setChecked(False)
-        self.griffin_lim_checkbox.setToolTip("When checked, Griffin-Lim is vocoder."
-            " This feature requires `webrtcvad` to be installed.")
+        self.griffin_lim_checkbox.setToolTip("When checked, Griffin-Lim is vocoder.")
         layout_seed.addWidget(self.griffin_lim_checkbox, 0, 3)
         gen_layout.addLayout(layout_seed)
 
@@ -668,7 +677,7 @@ class UI(QDialog):
         self.log_window.setAlignment(Qt.AlignBottom | Qt.AlignLeft)
         gen_layout.addWidget(self.log_window)
         self.logs = []
-        gen_layout.addStretch()
+        # gen_layout.addStretch()
 
 
         ## Set the size of the window and of the elements
