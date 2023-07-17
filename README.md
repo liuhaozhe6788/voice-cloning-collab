@@ -104,12 +104,12 @@ python demo_cli.py
 ```
 First input the number of audios, then input the audio file paths, then input the text message. The attention alignments and mel spectrogram are stored in syn_results/. The generated audio is stored in out_audios/.
 
-**GUI demo**
+**GUI demo:**
 ```
 python demo_toolbox.py
 ```
 ## Dimension reduction visualization
-**Download dataset：** 
+**Download dataset:** 
 
 [LibriSpeech](https://www.openslr.org/12): test-other
 (extract as <datasets_root>/LibriSpeech/<dataset_name>)
@@ -119,7 +119,7 @@ python demo_toolbox.py
 python encoder_test_preprocess.py <datasets_root>
 ```
 
-**Visualization**
+**Visualization:**
 ```
 python encoder_test_visualization.py <model_id> <datasets_root>
 ```
