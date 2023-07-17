@@ -127,3 +127,6 @@ The results are saved in dim_reduction_results/.
 
 ## Pretrained models
 You can download the pretrained model from [this](https://drive.google.com/drive/folders/19fhjjAbWq60zv1Bl6Y51snGbG1r5kaN2) and extract as saved_models/20230609
+
+## Demo results
+coming soon
