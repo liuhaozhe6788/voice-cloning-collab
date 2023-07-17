@@ -133,12 +133,12 @@ The results are saved in dim_reduction_results/.
 ## Emotion Encoder Dimension reduction visualization
 **Download dataset：** 
 
-[LibriSpeech](https://www.openslr.org/12): test-other
-(extract as <datasets_root>/LibriSpeech/<dataset_name>)
+[ESD_test](https://drive.google.com/drive/folders/1dt5iGKrLnhwkqhIltHR-qtksMFXhFkXp):
+(extract as `emotion_encoder/MFCC/ESD_test.npy`)
 
 **Visualization**
 ```
-python encoder_test_visualization.py <model_id> <datasets_root>
+python emotion_embed_visualization.py
 ```
 The results are saved in dim_reduction_results/.
 
