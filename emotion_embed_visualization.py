@@ -94,4 +94,7 @@ ax.set_ylim(lim)
 ax.set_aspect('equal')
 ax.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.0)
 ax.set_title('UMAP visualization of emotion speech test dataset')
-plt.savefig("umap.png", dpi=500)
+if not os.path.exists("dim_reduction_results"):
+    os.mkdir("dim_reduction_results")
+plt.savefig("emotion_umap.png", dpi=500)
+plt.savefig("dim_reduction_results/emotion_umap.png", dpi=500)
