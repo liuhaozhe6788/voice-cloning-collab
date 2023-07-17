@@ -162,42 +162,24 @@ if __name__ == '__main__':
     weight = arg_dict["weight"] # 声音美颜的用户语音权重
     amp = 1
 
-    # try:
-    # Get the reference audio filepath
-    # enter the number of reference audios
-    # message1 = "Please enter the number of reference audios:\n"
-    # num_of_input_audio = int(input(message1))
-    num_of_input_audio = 1
+    while True:
+        # try:
+        # Get the reference audio filepath
 
-    # for i in range(num_of_input_audio):
-    # Computing the embedding
-    # First, we load the wav using the function that the speaker encoder provides. This is
-    # important: there is preprocessing that must be applied.
+        # Computing the embedding
+        # First, we load the wav using the function that the speaker encoder provides. This is
+        # important: there is preprocessing that must be applied.
 
-    # The following two methods are equivalent:
-    # - Directly load from the filepath:
-    # preprocessed_wav = encoder.preprocess_wav(in_fpath)
-    # - If the wav is already loaded:
+        # The following two methods are equivalent:
+        # - Directly load from the filepath:
+        # preprocessed_wav = encoder.preprocess_wav(in_fpath)
+        # - If the wav is already loaded:
 
-    # get duration info from input audio
-    # message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
-    #         f"wav, m4a, flac, ...):({i+1}/{num_of_input_audio})\n"
-    # in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
+        # get duration info from input audio
+        message2 = "Reference voice: enter an audio folder of a voice to be cloned (mp3, " \
+                f"wav, m4a, flac, ...):\n"
+        in_fpath = Path(input(message2).replace("\"", "").replace("\'", ""))
 
-    in_fpaths = [
-        # "/home/liuhaozhe/signal_processing_projs/rtvc/voice-cloning-collab/samples/6829_00000.mp3",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/anger_pt.wav",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/amused_pt.wav",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/disgust_pt.wav",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/neutral_pt.wav",
-        "/home/liuhaozhe/signal_processing_projs/collected_audios/emotion_audios/EMODB/sleepiness_pt.wav",
-        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Angry/test/0016_000371.wav", # angry
-        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Happy/test/0016_000723.wav", # happy 
-        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Neutral/test/0016_000024.wav", # neutral
-        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Sad/test/0016_001077.wav", # sad
-        "/home/liuhaozhe/signal_processing_projs/rtvc/data/Emotional_Speech_Dataset/0016/Surprise/test/0016_001428.wav" # surprise
-    ]
-    for in_fpath in in_fpaths:
 
         fpath_without_ext = os.path.splitext(str(in_fpath))[0]
         speaker_name = os.path.normpath(fpath_without_ext).split(os.sep)[-1]
@@ -232,7 +214,7 @@ if __name__ == '__main__':
         speaker_embed = speaker_encoder.inference.embed_utterance(preprocessed_wav)
         mfcc = get_mfcc(wav, syn_hparams.sample_rate, mean_signal_length=320000)
         emotion_embed = emotion_encoder.infer(np.array([mfcc]), model_dir=args.emotion_encoder_model_fpath)[0]
-    
+
         # Choose standard audio
         # fft_max_freq = vocoder.get_dominant_freq(preprocessed_wav)
         # print(f"\nthe dominant frequency of input audio is {fft_max_freq}Hz")
@@ -262,8 +244,7 @@ if __name__ == '__main__':
 
         start_syn = time.time()
         # Generating the spectrogram
-        # text = input("Write a sentence to be synthesized:\n")
-        text = "We have to reduce the number of plastic bags"
+        text = input("Write a sentence to be synthesized:\n")
 
         # If seed is specified, reset torch seed and force synthesizer reload
         if args.seed is not None:
@@ -344,7 +325,7 @@ if __name__ == '__main__':
         print("\nSaved output (haven't change speed) as %s\n\n" % filename)
 
         # Fix Speed(generate new audio)
-        fix_file = work(totDur_ori, 
+        fix_file, speed_factor = work(totDur_ori, 
                         nPause_ori, 
                         arDur_ori, 
                         nSyl_ori, 

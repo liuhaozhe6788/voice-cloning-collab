@@ -8,11 +8,12 @@ It is an improved version of [Real-Time-Voice-Cloning](https://github.com/Corent
 
 2. Create a new conda environment with 
 ```
-conda create -n rtvc python=3.7.13
+conda create -n rtvc python=3.9
 ```
-3. Install [PyTorch](https://download.pytorch.org/whl/torch_stable.html).  Pick the proposed CUDA version if you have a GPU, otherwise pick CPU.
-My torch version: `torch=1.9.1+cu111`
-`torchvision=0.10.1+cu111`
+3. Install [PyTorch](https://download.pytorch.org/whl/torch_stable.htmlhttps://pytorch.org/get-started/previous-versions/).  Pick the proposed CUDA version if you have a GPU, otherwise pick CPU.
+```
+conda install pytorch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 pytorch-cuda=11.6 -c pytorch -c nvidia
+```
 
 4. Install the remaining requirements with 
 ```
@@ -25,7 +26,10 @@ pip install -r requirements.txt
 
 ## Training
 
-### Encoder 
+### Emotion Encoder
+The source code and the training procedures are [here](https://github.com/liuhaozhe6788/TIM-Net_SER/tree/main). The training checkpoint should be in saved_models/default/INTERSECT_46_dilation_8_dropout_05_add_esd_npairLoss.
+
+### Speaker Encoder 
 
 **Download dataset：** 
 
@@ -102,7 +106,11 @@ Training breakpoints are saved periodically, so you can run the training command
 ```
 python demo_cli.py
 ```
-First input the number of audios, then input the audio file paths, then input the text message. The attention alignments and mel spectrogram are stored in syn_results/. The generated audio is stored in out_audios/.
+First input the audio file paths, then input the text message. The attention alignments and mel spectrogram are stored in syn_results/. The generated audio is stored in out_audios/.
+
+```
+python demo_toolbox.py
+```
 ## Dimension reduction visualization
 **Download dataset：** 
 
