@@ -1,7 +1,7 @@
-# Real-Time Voice Cloning v2
+# Emotion Voice Cloning
 
 ### What is this?
-It is an improved version of [Real-Time-Voice-Cloning](https://github.com/CorentinJ/Real-Time-Voice-Cloning).
+It is an improved version of [Real-Time-Voice-Cloning](https://github.com/CorentinJ/Real-Time-Voice-Cloning) which can generate emotional audio outputs based on the reference audio.
 
 ## Installation
 1. Install [ffmpeg](https://ffmpeg.org/download.html#get-packages). This is necessary for reading audio files.
@@ -108,13 +108,13 @@ python demo_cli.py
 ```
 First input the audio file paths, then input the text message. The attention alignments and mel spectrogram are stored in syn_results/. The generated audio is stored in out_audios/.
 
-GUI demo:
+**Run GUI demo:**
 
 ```
 python demo_toolbox.py
 ```
 ## Speaker Encoder Dimension reduction visualization
-**Download dataset：** 
+**Download dataset:** 
 
 [LibriSpeech](https://www.openslr.org/12): test-other
 (extract as <datasets_root>/LibriSpeech/<dataset_name>)
@@ -124,19 +124,19 @@ python demo_toolbox.py
 python encoder_test_preprocess.py <datasets_root>
 ```
 
-**Visualization**
+**Visualization:**
 ```
 python encoder_test_visualization.py <model_id> <datasets_root>
 ```
 The results are saved in dim_reduction_results/.
 
 ## Emotion Encoder Dimension reduction visualization
-**Download dataset：** 
+**Download dataset:** 
 
 [ESD_test](https://drive.google.com/drive/folders/1dt5iGKrLnhwkqhIltHR-qtksMFXhFkXp):
 (extract as `emotion_encoder/MFCC/ESD_test.npy`)
 
-**Visualization**
+**Visualization:**
 ```
 python emotion_embed_visualization.py
 ```
@@ -144,3 +144,6 @@ The results are saved in dim_reduction_results/.
 
 ## Pretrained models
 You can download the pretrained model from [this](https://drive.google.com/drive/folders/11DFU_JBGet_HEwUoPZGDfe-fDZ42eqiG) and extract as saved_models/default
+
+## Demo results
+coming soon
