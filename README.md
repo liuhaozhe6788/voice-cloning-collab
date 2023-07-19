@@ -27,7 +27,7 @@ pip install -r requirements.txt
 ## Training
 
 ### Emotion Encoder
-The source code and the training procedures are [here](https://github.com/liuhaozhe6788/TIM-Net_SER/tree/main). The training checkpoint should be in saved_models/default/INTERSECT_46_dilation_8_dropout_05_add_esd_npairLoss.
+The source code and the training procedures are [here](https://github.com/liuhaozhe6788/TIM-Net_SER). The training checkpoint should be in saved_models/default/INTERSECT_46_dilation_8_dropout_05_add_esd_npairLoss.
 
 ### Speaker Encoder 
 
