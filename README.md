@@ -143,13 +143,13 @@ You can download the pretrained model from [this](https://drive.google.com/drive
       <td  rowspan="3" align = "center">
       <audio controls autoplay src="samples/260-123286-0000.flac"></audio>
       <a href="samples/260-123286-0000.flac">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
       <td>Life was like a box of chocolates, you never know what you're gonna get.</td>
       <td align = "center">
       <audio controls autoplay src="demo_results/text1/260-123286-0000_syn_1.0.wav"></audio>
       <a href="demo_results/text1/260-123286-0000_syn_1.0.wav">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
     </tr>
     <tr>
@@ -157,7 +157,7 @@ You can download the pretrained model from [this](https://drive.google.com/drive
       <td align = "center">
       <audio controls autoplay src="demo_results/text2/260-123286-0000_syn_1.0.wav"></audio>
       <a href="demo_results/text2/260-123286-0000_syn_1.0.wav">
-        </a>
+        <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
     </tr>
     <tr>
@@ -165,20 +165,20 @@ You can download the pretrained model from [this](https://drive.google.com/drive
       <td align = "center">
         <audio controls autoplay src="demo_results/text3/260-123286-0000_syn_0.97.wav"></audio>
         <a href="demo_results/text3/260-123286-0000_syn_0.97.wav">
-        </a>
+        <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
     </tr>
     <tr>
       <td  rowspan="3" align = "center">
       <audio controls autoplay src="samples/1688-142285-0000.flac"></audio>
       <a href="samples/1688-142285-0000.flac">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
       <td>Life was like a box of chocolates, you never know what you're gonna get.</td>
       <td align = "center">
       <audio controls autoplay src="demo_results/text1/1688-142285-0000_syn.wav"></audio>
       <a href="demo_results/text1/1688-142285-0000_syn.wav">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
     </tr>
     <tr>
@@ -186,7 +186,7 @@ You can download the pretrained model from [this](https://drive.google.com/drive
       <td align = "center">
       <audio controls autoplay src="demo_results/text2/1688-142285-0000_syn_0.77.wav"></audio>
       <a href="demo_results/text2/1688-142285-0000_syn_0.77.wav">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
     </tr>
     <tr>
@@ -194,20 +194,20 @@ You can download the pretrained model from [this](https://drive.google.com/drive
       <td align = "center">
       <audio controls autoplay src="demo_results/text3/1688-142285-0000_syn.wav"></audio>
       <a href="demo_results/text3/1688-142285-0000_syn.wav">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
     </tr>
     <tr>
       <td  rowspan="3" align = "center">
       <audio controls autoplay src="samples/4294-9934-0000.flac"></audio>
       <a href="samples/4294-9934-0000.flac">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
       <td>Life was like a box of chocolates, you never know what you're gonna get.</td>
       <td align = "center">
       <audio controls autoplay src="demo_results/text1/4294-9934-0000_syn_0.98.wav"></audio>
       <a href="demo_results/text1/4294-9934-0000_syn_0.98.wav">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
     </tr>
     <tr>
@@ -215,7 +215,7 @@ You can download the pretrained model from [this](https://drive.google.com/drive
       <td align = "center">
       <audio controls autoplay src="demo_results/text2/4294-9934-0000_syn_0.78.wav"></audio>
       <a href="demo_results/text2/4294-9934-0000_syn_0.78.wav">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
     </tr>
     <tr>
@@ -223,20 +223,20 @@ You can download the pretrained model from [this](https://drive.google.com/drive
       <td align = "center">
       <audio controls autoplay src="demo_results/text3/4294-9934-0000_syn_0.76.wav"></audio>
       <a href="demo_results/text3/4294-9934-0000_syn_0.76.wav">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
     </tr>
     <tr>   
       <td  rowspan="3" align = "center">
       <audio controls autoplay src="samples/7176-88083-0000.flac"></audio>
       <a href="samples/7176-88083-0000.flac">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
       <td>Life was like a box of chocolates, you never know what you're gonna get.</td>
       <td align = "center">
       <audio controls autoplay src="demo_results/text1/7176-88083-0000_syn_1.13.wav"></audio>
       <a href="demo_results/text1/7176-88083-0000_syn_1.13.wav">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
     </tr>
     <tr>
@@ -244,7 +244,7 @@ You can download the pretrained model from [this](https://drive.google.com/drive
       <td align = "center">
       <audio controls autoplay src="demo_results/text2/7176-88083-0000_syn_0.76.wav"></audio>
       <a href="demo_results/text2/7176-88083-0000_syn_0.76.wav">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
     </tr>
     <tr>
@@ -252,7 +252,7 @@ You can download the pretrained model from [this](https://drive.google.com/drive
       <td align = "center">
       <audio controls autoplay src="demo_results/text3/7176-88083-0000_syn_0.8.wav"></audio>
       <a href="demo_results/text3/7176-88083-0000_syn_0.8.wav">
-            </a>
+            <img align="center" src="./docs/images/audio_icon.png" width="200 style="max-width: 100%;"></a>
       </td>
     </tr>
   </tbody>
