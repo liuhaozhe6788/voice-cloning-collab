@@ -129,4 +129,57 @@ The results are saved in dim_reduction_results/.
 You can download the pretrained model from [this](https://drive.google.com/drive/folders/19fhjjAbWq60zv1Bl6Y51snGbG1r5kaN2) and extract as saved_models/20230609
 
 ## Demo results
-coming soon
+<div align = "center">
+<table style="width:100%">
+  <thead>
+    <tr>
+      <th width="550" > Input Text</th>
+      <th>Synthetic Audio</th>
+    </tr>
+  </thead>
+  <tbody>
+   <tr>
+      <td>Life was like a box of chocolates, you never know what you're gonna get.</td>
+      <td align = "center">
+      <audio controls><source src="samples/1320_00000.mp3"></audio> 
+      </td>
+    </tr>
+    <tr>
+      <td>早上好，今天是2020/10/29，最低温度是-3°C。</td>
+      <td align = "center">
+      <a href="https://paddlespeech.bj.bcebos.com/Parakeet/docs/demos/parakeet_espnet_fs2_pwg_demo/tn_g2p/parakeet/001.wav" rel="nofollow">
+            <img align="center" src="./docs/images/audio_icon.png" width="200" style="max-width: 100%;"></a><br>
+      </td>
+    </tr>
+    <tr>
+      <td>季姬寂，集鸡，鸡即棘鸡。棘鸡饥叽，季姬及箕稷济鸡。鸡既济，跻姬笈，季姬忌，急咭鸡，鸡急，继圾几，季姬急，即籍箕击鸡，箕疾击几伎，伎即齑，鸡叽集几基，季姬急极屐击鸡，鸡既殛，季姬激，即记《季姬击鸡记》。</td>
+      <td align = "center">
+      <a href="https://paddlespeech.bj.bcebos.com/Parakeet/docs/demos/jijiji.wav" rel="nofollow">
+            <img align="center" src="./docs/images/audio_icon.png" width="200" style="max-width: 100%;"></a><br>
+      </td>
+    </tr>
+    <tr>
+      <td>大家好，我是 parrot 虚拟老师，我们来读一首诗，我与春风皆过客，I and the spring breeze are passing by，你携秋水揽星河，you take the autumn water to take the galaxy。</td>
+      <td align = "center">
+      <a href="https://paddlespeech.bj.bcebos.com/Parakeet/docs/demos/labixiaoxin.wav" rel="nofollow">
+            <img align="center" src="./docs/images/audio_icon.png" width="200" style="max-width: 100%;"></a><br>
+      </td>
+    </tr>
+    <tr>
+      <td>宜家唔系事必要你讲，但系你所讲嘅说话将会变成呈堂证供。</td>
+      <td align = "center">
+      <a href="https://paddlespeech.bj.bcebos.com/Parakeet/docs/demos/chengtangzhenggong.wav" rel="nofollow">
+            <img align="center" src="./docs/images/audio_icon.png" width="200" style="max-width: 100%;"></a><br>
+      </td>
+    </tr>
+    <tr>
+      <td>各个国家有各个国家嘅国歌</td>
+      <td align = "center">
+      <a href="https://paddlespeech.bj.bcebos.com/Parakeet/docs/demos/gegege.wav" rel="nofollow">
+            <img align="center" src="./docs/images/audio_icon.png" width="200" style="max-width: 100%;"></a><br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+</div>

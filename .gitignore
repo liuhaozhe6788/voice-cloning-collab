@@ -21,5 +21,8 @@ launch.json
 *.pt
 *.whl
 *.m4a
-*.png
 log/
+
+syn_results
+toolbox_results
+dim_reduction_results
