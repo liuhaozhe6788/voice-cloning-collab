@@ -1,0 +1,298 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="Hugo 0.88.1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href=""https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+	<link rel="stylesheet" href="../css/custom.css">
+	<link rel="stylesheet" href="../css/normalize.css">
+
+	<title>VALL-E</title>
+	<link href="../css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body data-new-gr-c-s-check-loaded="14.1091.0" data-gr-ext-installed="">
+
+<div class="container" >
+<header role="banner">
+</header>
+<main role="main">
+<article itemscope itemtype="https://schema.org/BlogPosting">
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+	<div class="text-center">
+	<h1>VALL-E</h1>
+        <h3>Neural Codec Language Models are Zero-Shot Text to Speech Synthesizers</h3>
+				Paper: <a href="https://arxiv.org/abs/2301.02111">https://arxiv.org/abs/2301.02111</a>
+	</div>
+	<p>
+        <b>Abstract.</b> 
+		We introduce a language modeling approach for text to speech synthesis (TTS). 
+		Specifically, we train a neural codec language model (called VALL-E) using discrete codes derived from an off-the-shelf neural audio codec model, 
+		and regard TTS as a conditional language modeling task rather than continuous signal regression as in previous work.
+		During the pre-training stage, we scale up the TTS training data to 60K hours of English speech which is hundreds of times larger than existing systems.
+		VALL-E emerges in-context learning capabilities and can be used to synthesize high-quality personalized speech with only a 3-second enrolled recording of an unseen speaker as an acoustic prompt. 
+		Experiment results show that VALL-E significantly outperforms the state-of-the-art zero-shot TTS system  in terms of speech naturalness and speaker similarity. 
+		In addition, we find VALL-E could preserve the speaker's emotion and acoustic environment of the acoustic prompt in synthesis.
+    </p>
+
+		<br>
+		official demo page: <a href="https://valle-demo.github.io/">https://valle-demo.github.io</a>
+		<br>
+
+		<br>
+		my implementation: <a href="https://github.com/lifeiteng/vall-e">https://github.com/lifeiteng/vall-e</a>
+		<br><br>
+		This page is for showing reproduced results only, I keep the main parts of the official demo.
+		<br><br>
+
+		<h2 id="model-configs" style="text-align: center;">Model Configs</h2>
+			<div class="table-responsive pt-3">
+				<table class="table table-hover pt-2">
+				<thead>
+				<tr>
+				<th style="text-align: center">Item</th>
+				<th style="text-align: center">The Paper</th>
+				<th style="text-align: center">LJSpeech Model</th>
+				<th style="text-align: center">LibriTTS Model</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr><td style="text-align: center; width: 140px"><b>Transformer</b></td>
+				<td style="text-align: center; width: 140px"><b>Dim 1024 Heads 16 Layers 12</b></td>
+				<td style="text-align: center; width: 140px"><b>Dim 256 Heads 8 Layers 6</b></td>
+				<td style="text-align: center; width: 140px"><b>Dim 1024 Heads 16 Layers 12</b></td>
+				</tr>
+				<tr>
+				<td style="text-align: center; width: 140px"><b>Dataset</b></td>
+				<td style="text-align: center; width: 140px"><b>LibriLight 60K hours</b></td>
+				<td style="text-align: center; width: 140px"><b>LJSpeech 20 hours</b></td>
+				<td style="text-align: center; width: 140px"><b>LibriTTS 0.56K hours</b></td>
+				</tr>
+				<tr>
+				<td style="text-align: center; width: 140px"><b>Machines</b></td>
+				<td style="text-align: center; width: 140px"><b>16 x V100 32GB GPU</b></td>
+				<td style="text-align: center; width: 140px"><b>1 x RTX 12GB GPU</b></td>
+				<td style="text-align: center; width: 140px"><b>1 x RTX 24GB GPU</b></td>
+				</tr>
+				</tbody>
+				</table>
+			</div>
+
+</div>
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">		
+	<h2 id="model-overview" style="text-align: center;">Model Overview</h2>
+	<body>
+	<p style="text-align: center;">
+		<img src="./Overview.jpg" height="400" width="800">
+	</p>
+	</body>
+		<p>
+		The overview of VALL-E.  
+		Unlike the previous pipeline (e.g., phoneme &rarr; mel-spectrogram &rarr; waveform), the pipeline of VALL-E is phoneme &rarr; discrete code &rarr; waveform.  
+		VALL-E generates the discrete audio codec codes based on phoneme and acoustic code prompts, corresponding to the target content  and the  speaker's voice. 
+		VALL-E directly enables various speech synthesis applications, such as zero-shot TTS, speech editing, and content creation combined with other generative AI models like GPT-3.
+		</p>
+</div>
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+	<h2 id="ljspeech-samples" style="text-align: center;">LJSpeech Samples</h2>
+		<div class="table-responsive pt-3">
+			<table class="table table-hover pt-2">
+			<thead>
+			<tr>
+			<th style="text-align: center">Text</th>
+			<th style="text-align: center">Speaker Prompt</th>
+			<th style="text-align: center">Ground Truth</th>
+			<th style="text-align: center">LJSpeech Model</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr><td style="text-align: left;vertical-align:middle;width: 600px">In addition, the proposed legislation will insure.</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/ljspeech/LJ049-0185_24K.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/ljspeech/LJ049-0124_24K.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/ljspeech/LJ049-0185_24K_prompted_libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			<tr>
+			<td style="text-align: left;vertical-align:middle;width: 500px">During the period the Commission was giving thought to this situation,</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/ljspeech/LJ049-0124_24K.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/ljspeech/LJ049-0185_24K.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/ljspeech/LJ049-0124_24K_prompted_libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			</tbody>
+			</table>
+		</div>
+</div>
+
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+	<h2 id="librispeech-samples" style="text-align: center;">LibriSpeech Samples</h2>
+		<div class="table-responsive pt-3">
+			<table class="table table-hover pt-2">
+			<thead>
+			<tr>
+			<th style="text-align: center">Text</th>
+			<th style="text-align: center">Speaker Prompt</th>
+			<th style="text-align: center">Ground Truth</th>
+			<th style="text-align: center">VALL-E</th>
+			<th style="text-align: center">LibriTTS Model</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr><td style="text-align: left;vertical-align:middle;width: 600px">They moved thereafter cautiously about the hut groping before and about them to find something to show that Warrenton had fulfilled his mission.</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/61-70970-0024/prompt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/61-70970-0024/gt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/61-70970-0024/official.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/61-70970-0024/libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			<tr>
+			<td style="text-align: left;vertical-align:middle;width: 500px">And lay me down in thy cold bed and leave my shining lot.</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/908-157963-0027/prompt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/908-157963-0027/gt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/908-157963-0027/official.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/908-157963-0027/libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			<tr>
+			<td style="text-align: left;vertical-align:middle;width: 500px">Number ten, fresh nelly is waiting on you, good night husband.</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/1089-134686-0004/prompt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/1089-134686-0004/gt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/1089-134686-0004/official.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/1089-134686-0004/libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			<tr>
+			<td style="text-align: left;vertical-align:middle;width: 500px">Yea, his honourable worship is within, but he hath a godly minister or two with him, and likewise a leech.</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/1221-135767-0014/prompt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/1221-135767-0014/gt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/1221-135767-0014/official.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/librispeech/1221-135767-0014/libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			</tbody>
+			</table>
+		</div>
+</div>
+
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">	
+		<h2 id="Acoustic-Environment-Maintenance" style="text-align: center;">Acoustic Environment Maintenance</h2>
+		
+			<p> 
+			VALL-E can synthesize personalized speech while maintaining the acoustic environment of the speaker prompt. The audio and transcriptions are sampled from the Fisher dataset.
+			</p>
+
+		<div class="table-responsive pt-3">
+			<table class="table table-hover pt-2">
+			<thead>
+			<tr>
+			<th style="text-align: center">Text</th>
+			<th style="text-align: center">Speaker Prompt</th>
+			<th style="text-align: center">Ground Truth</th>
+			<th style="text-align: center">VALL-E</th>
+			<th style="text-align: center">LibriTTS Model</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr>
+			<td style="text-align: left;vertical-align:middle;width: 500px">I think it's like you know um more convenient too.</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/1_pt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/1_gt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/1_official.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/1_libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			<tr>
+			<td style="text-align: left;vertical-align:middle;width: 500px">Um we have to pay have this security fee just in case she would damage something but um.</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/2_pt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/2_gt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/2_official.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/2_libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			<tr>
+			<td style="text-align: left;vertical-align:middle;width: 500px">Everything is run by computer but you got to know how to think before you can do a computer.</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/3_pt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/3_gt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/3_official.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/3_libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			<tr>
+			<td style="text-align: left;vertical-align:middle;width: 500px">As friends thing I definitely I've got more male friends.</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/4_pt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/4_gt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/4_official.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/fisher/4_libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			</tbody>
+			</table>
+		</div>
+</div>
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">		
+		<h2 id="Speaker-Emotion-Maintenance" style="text-align: center;">Speaker’s Emotion Maintenance</h2>
+			<p> 
+			VALL-E can synthesize personalized speech while maintaining the emotion in the speaker prompt. The audio prompts are sampled from the Emotional Voices Database.
+			</p>
+		<div class="table-responsive pt-3">
+			<table class="table table-hover pt-2">
+			<thead>
+			<tr>
+			<th style="text-align: center">Text</th>
+			<th style="text-align: center">Emotion</th>
+			<th style="text-align: center">Speaker Prompt</th>
+			<th style="text-align: center">VALL-E</th>
+			<th style="text-align: center">LibriTTS Model</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr>
+			<td rowspan="5" style="text-align: left;vertical-align:middle;width: 500px">We have to reduce the number of plastic bags.</td>
+			<td style="text-align: center;vertical-align:middle;width: 220px">Anger</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/anger_pt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/anger_official.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/anger_libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			<tr>
+			<td style="text-align: center;vertical-align:middle;width: 220px">Sleepy</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/sleepiness_pt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/sleepiness_official.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/sleepiness_libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			<tr>
+			<td style="text-align: center;vertical-align:middle;width: 220px">Neutral</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/neutral_pt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/neutral_official.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/neutral_libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			<tr>
+			<td style="text-align: center;vertical-align:middle;width: 220px">Amused</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/amused_pt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/amused_official.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/amused_libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			<tr>
+			<td style="text-align: center;vertical-align:middle;width: 220px">Disgusted</td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/disgust_pt.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/disgust_official.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			<td style="text-align: center"><audio controls="controls" style="width: 140px;"><source src="audios/emov_db/disgust_libritts.wav" autoplay/>Your browser does not support the audio element.</audio></td>
+			</tr>
+			</tbody>
+			</table>	
+		</div>
+</div>
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+	<h2 id="Ethics-Statement" style="text-align: center;">Ethics Statement</h2>
+	<p>
+	To avoid abuse, Well-trained models and services will not be provided.
+	</p>
+</div>
+ 
+</article>
+</main>
+</div>
+
+</body>
+</html>
