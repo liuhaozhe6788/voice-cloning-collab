@@ -96,7 +96,7 @@ class TIMNET_Model(Common_Model):
         # self.similarity_matrix = tf.matmul(self.decision, self.decision, transpose_a=False, transpose_b=True)
         ###
         # self.predictions = Dense(self.num_classes, activation='softmax')(self.decision_norm)
-        self.model = Model(inputs = self.inputs, outputs = self.decision)
+        self.model = Model(inputs = self.inputs, outputs = self.decision_norm)
         
         # LossFunc = {'tf.math.truediv':'npairs_loss', 'dense':'categorical_crossentropy'}
         # lossWeights = {'tf.math.truediv':0.1, 'dense':1}

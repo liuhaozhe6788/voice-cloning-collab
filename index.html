@@ -1,0 +1,283 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="generator" content="Hugo 0.88.1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+	<link rel="stylesheet" href="css/custom.css">
+	<link rel="stylesheet" href="css/normalize.css">
+
+	<title>Voice Cloning</title>
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body data-new-gr-c-s-check-loaded="14.1091.0" data-gr-ext-installed="">
+
+<div class="container" >
+<header role="banner">
+</header>
+<main role="main">
+<article itemscope itemtype="https://schema.org/BlogPosting">
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+	<div class="text-center">
+	<h1>Real-Time Voice Cloning v2</h1>
+	</div>
+		<br>
+		paper: <a href="https://arxiv.org/pdf/1806.04558.pdf">https://arxiv.org/pdf/1806.04558.pdf</a>
+		<br>
+		<br>
+		code: <a href="https://github.com/liuhaozhe6788/voice-cloning-collab">https://github.com/liuhaozhe6788/voice-cloning-collab</a>
+		<br>
+</div>
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">		
+	<h2 id="model-overview" style="text-align: center;">Model Overview</h2>
+	<body>
+	<p style="text-align: center;">
+		<img src="docs/images/voice_cloning_arch.png" height="400" width="800">
+		<br>
+		The architecture is the same as that in the paper. 
+	</p>
+</div>
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+	<h2 id="libriSpeech-test-samples" style="text-align: center;">LibriSpeech test Samples</h2>
+		<div class="table-responsive pt-3">
+			<table class="table table-hover pt-2">
+			<thead>
+			<tr>
+			<th style="text-align: center">Speaker Prompt</th>
+			<th style="text-align: center">Text</th>
+			<th style="text-align: center">Generated Audio</th>
+			</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td  rowspan="3" align = "center">
+					<audio controls  src="samples/260-123286-0000.flac"></audio>
+					<a href="samples/260-123286-0000.flac">
+						  </a>
+					</td>
+					<td>Life was like a box of chocolates, you never know what you're gonna get.</td>
+					<td align = "center">
+					<audio controls  src="demo_results/text1/260-123286-0000_syn_1.0.wav"></audio>
+					<a href="demo_results/text1/260-123286-0000_syn_1.0.wav">
+						  </a>
+					</td>
+				  </tr>
+				  <tr>
+					<td>In 2014, P&G recorded $83.1 billion in sales. On August 1, 2014, P&G announced it was streamlining the company, dropping and selling off around 100 brands from its product portfolio in order to focus on the remaining 65 brands, which produced 95% of the company's profits.</td>
+					<td align = "center">
+					<audio controls  src="demo_results/text2/260-123286-0000_syn_1.0.wav"></audio>
+					<a href="demo_results/text2/260-123286-0000_syn_1.0.wav">
+					  </a>
+					</td>
+				  </tr>
+				  <tr>
+					<td>Mechanics is a branch of physics that deals with the behavior of physical bodies under the influence of various forces. The study of mechanics is important in understanding the behavior of machines, the motion of objects, and the principles of engineering. Mechanics has been an essential part of physics since ancient times and has continued to evolve with advancements in science and technology. This paper will discuss the principles of mechanics, the laws of motion, and the applications of mechanics in engineering and technology.</td>
+					<td align = "center">
+					  <audio controls  src="demo_results/text3/260-123286-0000_syn_0.97.wav"></audio>
+					  <a href="demo_results/text3/260-123286-0000_syn_0.97.wav">
+					  </a>
+					</td>
+				  </tr>
+				  <tr>
+					<td  rowspan="3" align = "center">
+					<audio controls  src="samples/1688-142285-0000.flac"></audio>
+					<a href="samples/1688-142285-0000.flac">
+						  </a>
+					</td>
+					<td>Life was like a box of chocolates, you never know what you're gonna get.</td>
+					<td align = "center">
+					<audio controls  src="demo_results/text1/1688-142285-0000_syn.wav"></audio>
+					<a href="demo_results/text1/1688-142285-0000_syn.wav">
+						  </a>
+					</td>
+				  </tr>
+				  <tr>
+					<td>In 2014, P&G recorded $83.1 billion in sales. On August 1, 2014, P&G announced it was streamlining the company, dropping and selling off around 100 brands from its product portfolio in order to focus on the remaining 65 brands, which produced 95% of the company's profits.</td>
+					<td align = "center">
+					<audio controls  src="demo_results/text2/1688-142285-0000_syn_0.77.wav"></audio>
+					<a href="demo_results/text2/1688-142285-0000_syn_0.77.wav">
+						  </a>
+					</td>
+				  </tr>
+				  <tr>
+					<td>Mechanics is a branch of physics that deals with the behavior of physical bodies under the influence of various forces. The study of mechanics is important in understanding the behavior of machines, the motion of objects, and the principles of engineering. Mechanics has been an essential part of physics since ancient times and has continued to evolve with advancements in science and technology. This paper will discuss the principles of mechanics, the laws of motion, and the applications of mechanics in engineering and technology.</td>
+					<td align = "center">
+					<audio controls  src="demo_results/text3/1688-142285-0000_syn.wav"></audio>
+					<a href="demo_results/text3/1688-142285-0000_syn.wav">
+						  </a>
+					</td>
+				  </tr>
+				  <tr>
+					<td  rowspan="3" align = "center">
+					<audio controls  src="samples/4294-9934-0000.flac"></audio>
+					<a href="samples/4294-9934-0000.flac">
+						  </a>
+					</td>
+					<td>Life was like a box of chocolates, you never know what you're gonna get.</td>
+					<td align = "center">
+					<audio controls  src="demo_results/text1/4294-9934-0000_syn_0.98.wav"></audio>
+					<a href="demo_results/text1/4294-9934-0000_syn_0.98.wav">
+						  </a>
+					</td>
+				  </tr>
+				  <tr>
+					<td>In 2014, P&G recorded $83.1 billion in sales. On August 1, 2014, P&G announced it was streamlining the company, dropping and selling off around 100 brands from its product portfolio in order to focus on the remaining 65 brands, which produced 95% of the company's profits.</td>
+					<td align = "center">
+					<audio controls  src="demo_results/text2/4294-9934-0000_syn_0.78.wav"></audio>
+					<a href="demo_results/text2/4294-9934-0000_syn_0.78.wav">
+						  </a>
+					</td>
+				  </tr>
+				  <tr>
+					<td>Mechanics is a branch of physics that deals with the behavior of physical bodies under the influence of various forces. The study of mechanics is important in understanding the behavior of machines, the motion of objects, and the principles of engineering. Mechanics has been an essential part of physics since ancient times and has continued to evolve with advancements in science and technology. This paper will discuss the principles of mechanics, the laws of motion, and the applications of mechanics in engineering and technology.</td>
+					<td align = "center">
+					<audio controls  src="demo_results/text3/4294-9934-0000_syn_0.76.wav"></audio>
+					<a href="demo_results/text3/4294-9934-0000_syn_0.76.wav">
+						  </a>
+					</td>
+				  </tr>
+				  <tr>   
+					<td  rowspan="3" align = "center">
+					<audio controls  src="samples/7176-88083-0000.flac"></audio>
+					<a href="samples/7176-88083-0000.flac">
+						  </a>
+					</td>
+					<td>Life was like a box of chocolates, you never know what you're gonna get.</td>
+					<td align = "center">
+					<audio controls  src="demo_results/text1/7176-88083-0000_syn_1.13.wav"></audio>
+					<a href="demo_results/text1/7176-88083-0000_syn_1.13.wav">
+						  </a>
+					</td>
+				  </tr>
+				  <tr>
+					<td>In 2014, P&G recorded $83.1 billion in sales. On August 1, 2014, P&G announced it was streamlining the company, dropping and selling off around 100 brands from its product portfolio in order to focus on the remaining 65 brands, which produced 95% of the company's profits.</td>
+					<td align = "center">
+					<audio controls  src="demo_results/text2/7176-88083-0000_syn_0.76.wav"></audio>
+					<a href="demo_results/text2/7176-88083-0000_syn_0.76.wav">
+						  </a>
+					</td>
+				  </tr>
+				  <tr>
+					<td>Mechanics is a branch of physics that deals with the behavior of physical bodies under the influence of various forces. The study of mechanics is important in understanding the behavior of machines, the motion of objects, and the principles of engineering. Mechanics has been an essential part of physics since ancient times and has continued to evolve with advancements in science and technology. This paper will discuss the principles of mechanics, the laws of motion, and the applications of mechanics in engineering and technology.</td>
+					<td align = "center">
+					<audio controls  src="demo_results/text3/7176-88083-0000_syn_0.8.wav"></audio>
+					<a href="demo_results/text3/7176-88083-0000_syn_0.8.wav">
+						  </a>
+					</td>
+				  </tr>
+			</tbody>
+			</table>
+		</div>
+</div>
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">
+	<div class="text-center">
+	<h1>Emotion Voice Cloning</h1>
+	</div>
+		<br>
+		code: <a href="https://github.com/liuhaozhe6788/voice-cloning-collab/tree/add_emotion">https://github.com/liuhaozhe6788/voice-cloning-collab/tree/add_emotion</a>
+		<br>
+</div>
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">		
+	<h2 id="Speaker-Emotion-Maintenance" style="text-align: center;">Emotion Speech Maintenance</h2>
+	<div class="table-responsive pt-3">
+		<table class="table table-hover pt-2">
+		<thead>
+		<tr>
+		<th style="text-align: center">Text</th>
+		<th style="text-align: center">Emotion</th>
+		<th style="text-align: center">Speaker Prompt</th>
+		<th style="text-align: center">Generated Audio</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td rowspan="5" style="text-align: left;vertical-align:middle;width: 500px">We have to reduce the number of plastic bags.</td>
+		<td style="text-align: center;vertical-align:middle;width: 220px">Angry</td>
+		<td style="text-align: center">					<audio controls  src="samples/angry.wav"></audio>
+			<a href="samples/angry.wav">
+				  </a></td>
+		<td style="text-align: center"><audio controls  src="demo_results/emotion_voice_cloning/text1/angry_syn_0.65.wav"></audio>
+			<a href="demo_results/emotion_voice_cloning/text1/angry_syn_0.65.wav">
+				  </a></td>
+		</tr>
+		<tr>
+			<td rowspan="5" style="text-align: left;vertical-align:middle;width: 500px">We have to reduce the number of plastic bags.</td>
+			<td style="text-align: center;vertical-align:middle;width: 220px">Disgust</td>
+			<td style="text-align: center">					<audio controls  src="samples/disgust_pt.wav"></audio>
+				<a href="samples/disgust_pt.wav">
+					  </a></td>
+			<td style="text-align: center"><audio controls  src="demo_results/emotion_voice_cloning/text1/disgust_pt_syn.wav"></audio>
+				<a href="demo_results/emotion_voice_cloning/text1/disgust_pt_syn.wav">
+					  </a></td>
+		</tr>
+		<tr>
+			<td rowspan="5" style="text-align: left;vertical-align:middle;width: 500px">We have to reduce the number of plastic bags.</td>
+			<td style="text-align: center;vertical-align:middle;width: 220px">Happy</td>
+			<td style="text-align: center">					<audio controls  src="samples/happy.wav"></audio>
+				<a href="samples/happy.wav">
+					  </a></td>
+			<td style="text-align: center"><audio controls  src="demo_results/emotion_voice_cloning/text1/disgust_pt_syn.wav"></audio>
+				<a href="demo_results/emotion_voice_cloning/text1/disgust_pt_syn.wav">
+					  </a></td>
+		</tr>
+		<tr>
+			<td rowspan="5" style="text-align: left;vertical-align:middle;width: 500px">We have to reduce the number of plastic bags.</td>
+			<td style="text-align: center;vertical-align:middle;width: 220px">Neutral</td>
+			<td style="text-align: center">					<audio controls  src="samples/neutral.wav"></audio>
+				<a href="samples/neutral.wav">
+					  </a></td>
+			<td style="text-align: center"><audio controls  src="demo_results/emotion_voice_cloning/text1/neutral_syn_1.39.wav"></audio>
+				<a href="demo_results/emotion_voice_cloning/text1/neutral_syn_1.39.wav">
+					  </a></td>
+		</tr>
+		<tr>
+			<td rowspan="5" style="text-align: left;vertical-align:middle;width: 500px">We have to reduce the number of plastic bags.</td>
+			<td style="text-align: center;vertical-align:middle;width: 220px">Sad</td>
+			<td style="text-align: center">					<audio controls  src="samples/sad.wav"></audio>
+				<a href="samples/sad.wav">
+					  </a></td>
+			<td style="text-align: center"><audio controls  src="demo_results/emotion_voice_cloning/text1/sad_syn.wav"></audio>
+				<a href="demo_results/emotion_voice_cloning/text1/sad_syn.wav">
+					  </a></td>
+		</tr>
+		<tr>
+			<td rowspan="5" style="text-align: left;vertical-align:middle;width: 500px">We have to reduce the number of plastic bags.</td>
+			<td style="text-align: center;vertical-align:middle;width: 220px">Sleepy</td>
+			<td style="text-align: center">					<audio controls  src="samples/sleepiness_pt.wav"></audio>
+				<a href="samples/sleepiness_pt.wav">
+					  </a></td>
+			<td style="text-align: center"><audio controls  src="demo_results/emotion_voice_cloning/text1/sleepiness_pt_syn_0.61.wav"></audio>
+				<a href="demo_results/emotion_voice_cloning/text1/sleepiness_pt_syn_0.61.wav">
+					  </a></td>
+		</tr>
+		<tr>
+			<td rowspan="5" style="text-align: left;vertical-align:middle;width: 500px">We have to reduce the number of plastic bags.</td>
+			<td style="text-align: center;vertical-align:middle;width: 220px">Surprise</td>
+			<td style="text-align: center">					<audio controls  src="samples/surprise.wav"></audio>
+				<a href="samples/surprise.wav">
+					  </a></td>
+			<td style="text-align: center"><audio controls  src="demo_results/emotion_voice_cloning/text1/surprise_syn_1.13.wav"></audio>
+				<a href="demo_results/emotion_voice_cloning/text1/surprise_syn_1.13.wav">
+					  </a></td>
+		</tr>
+		</tbody>
+		</table>	
+	</div>
+</div>
+ 
+</article>
+</main>
+</div>
+
+</body>
+</html>

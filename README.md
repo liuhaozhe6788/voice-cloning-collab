@@ -1,7 +1,11 @@
 # Emotion Voice Cloning
 
 ### What is this?
-It is an improved version of [Real-Time-Voice-Cloning](https://github.com/CorentinJ/Real-Time-Voice-Cloning) which can generate emotional audio outputs based on the reference audio.
+It is an improved version of [Real-Time-Voice-Cloning](https://github.com/CorentinJ/Real-Time-Voice-Cloning) which can generate emotional audio outputs based on the reference audio.<br>
+THe architecture of the emotion voice cloning system is as follows:<br>
+![image info](docs/images/emotion_voice_cloning_arch.png)
+Based on the architecture of real-time voice cloning, which is an encoder-synthesizer-vocoder pipeline, we add an emotion encoder to learn the emotion representation of the speaker prompt. The output of the emotion encoder is an emotion embedding. Then we concatenate the speaker embedding and the emotion embedding and reduce the dimension of the joint embedding. The final joint embedding is then plugged into the Tacotron2 model.<br>
+Since, we want to take advantage of the pretrained parameters of the real-time voice cloning checkpoints, we load the pretrained model, initialize the parameters of the fully connected layer added to the synthesizer, and continue training the Tacotron2 model. 
 
 ## Installation
 1. Install [ffmpeg](https://ffmpeg.org/download.html#get-packages). This is necessary for reading audio files.

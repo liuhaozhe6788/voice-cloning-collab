@@ -1,7 +1,7 @@
 import argparse
 from ctypes import alignment
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from pathlib import Path
 import spacy
 import time
