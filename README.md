@@ -150,4 +150,4 @@ The results are saved in dim_reduction_results/.
 You can download the pretrained model from [this](https://drive.google.com/drive/folders/11DFU_JBGet_HEwUoPZGDfe-fDZ42eqiG) and extract as saved_models/default
 
 ## Demo results
-Audio results are [here](https://github.com/liuhaozhe6788/voice-cloning-collab/tree/add_emotion).
+Audio results are [here](https://liuhaozhe6788.github.io/voice-cloning-collab/index.html).
