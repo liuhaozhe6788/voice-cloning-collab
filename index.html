@@ -188,6 +188,17 @@
 </div>
 
 <div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">		
+	<h2 id="model-overview" style="text-align: center;">Model Overview</h2>
+	<body>
+	<p style="text-align: center;">
+		<img src="docs/images/emotion_voice_cloning_arch.png" height="400" width="800">
+		<br>
+		Inspired by the architecture of Real-Time Voice Cloning, we add an emotion encoder to learn the emotion representation of the speaker prompt. The output of the emotion encoder is an emotion embedding. Then we concatenate the speaker embedding and the emotion embedding and reduce the dimension of the joint embedding. The final joint embedding is then plugged into the Tacotron2 model.<br>
+		Since, we want to take advantage of the pretrained parameters of the real-time voice cloning checkpoints, we load the pretrained model, initialize the parameters of the fully connected layer added to the synthesizer, and continue training the Tacotron2 model with the joint speech embedding input rather than the speaker embedding input. 
+	</p>
+</div>
+
+<div class="container pt-5 mt-5 shadow p-5 mb-5 bg-white rounded">		
 	<h2 id="Speaker-Emotion-Maintenance" style="text-align: center;">Emotion Speech Maintenance</h2>
 	<div class="table-responsive pt-3">
 		<table class="table table-hover pt-2">
