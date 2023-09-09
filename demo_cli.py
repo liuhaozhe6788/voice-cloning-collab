@@ -11,14 +11,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument("--run_id", type=str, default="default", help= \
+    parser.add_argument("--run_id", type=str, default="default_emotion", help= \
     "Name for this model. By default, training outputs will be stored to saved_models/<run_id>/. If a model state "
     "from the same run ID was previously saved, the training will restart from there. Pass -f to overwrite saved "
     "states and restart from scratch.")
     parser.add_argument("-m", "--models_dir", type=Path, default="saved_models",
                         help="Directory containing all saved models")
     parser.add_argument("--emotion_encoder_model_fpath", type=Path,
-                        default="saved_models/default/INTERSECT_46_dilation_8_dropout_05_add_esd_npairLoss", help=\
+                        default="saved_models/default_emotion/INTERSECT_46_dilation_8_dropout_05_add_esd_npairLoss", help=\
         "Path your trained emotion encoder model.")
     parser.add_argument("--weight", type=float, default=1,
                         help="weight of input audio for voice filter")
@@ -244,7 +244,8 @@ if __name__ == '__main__':
 
         start_syn = time.time()
         # Generating the spectrogram
-        text = input("Write a sentence to be synthesized:\n")
+        # text = input("Write a sentence to be synthesized:\n")
+        text = "We have to reduce the number of plastic bags."
 
         # If seed is specified, reset torch seed and force synthesizer reload
         if args.seed is not None:
@@ -261,13 +262,20 @@ if __name__ == '__main__':
         texts = preprocess_text(text)
         print(f"the list of inputs texts:\n{texts}")
 
-        speaker_embeds = [speaker_embed] * len(texts)
-        emotion_embeds = [emotion_embed] * len(texts)
-        specs, alignments, stop_tokens = synthesizer.synthesize_spectrograms(texts, speaker_embeds, emotion_embeds, require_visualization=True)
+        specs = []
+        alignments = []
+        stop_tokens = []
 
+        for text in texts:
+            spec, align, stop_token = synthesizer.synthesize_spectrograms([text], [speaker_embed], [emotion_embed], require_visualization=True)
+            specs.append(spec[0])
+            alignments.append(align[0])
+            stop_tokens.append(stop_token[0])
 
         breaks = [spec.shape[1] for spec in specs]
         spec = np.concatenate(specs, axis=1)
+        alignments = np.array(alignments)
+        stop_tokens = np.array(stop_tokens)
         
 
         ## Save synthesizer visualization results

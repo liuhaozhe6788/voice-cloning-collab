@@ -38,7 +38,7 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
         import tensorflow as tf
         import datetime
         # Hide GPU from visible devices
-        log_dir = f"log/synthesizer/tensorboard/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        log_dir = f"log/emotion_vc/synthesizer/tensorboard/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         train_summary_writer = tf.summary.create_file_writer(log_dir)
     models_dir.mkdir(exist_ok=True)
 

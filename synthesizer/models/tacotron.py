@@ -445,7 +445,6 @@ class Tacotron(nn.Module):
         # Need a couple of lists for outputs
         mel_outputs, attn_scores, stop_outputs = [], [], []
 
-        first_stop_token = 0
         # Run the decoder loop
         for t in range(0, steps, self.r):
             prenet_in = mel_outputs[-1][:, :, -1] if t > 0 else go_frame
@@ -458,8 +457,8 @@ class Tacotron(nn.Module):
             if t == 0:
                 first_stop_token = stop_tokens[0]      
             # Stop the loop when all stop tokens in batch exceed threshold compared with the 1st token and the sequence's length exceeds threshold
-            if (stop_tokens > first_stop_token * 2e3).all() and t > (20 * self.r): break
-            # if (stop_tokens > 0.5).all() and t > (20 * self.r): break
+            # if (stop_tokens > first_stop_token * 2e3).all() and t > (20 * self.r): break
+            if (stop_tokens > 0.01).all() and t > (20 * self.r): break
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
 
