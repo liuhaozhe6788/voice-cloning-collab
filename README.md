@@ -126,7 +126,7 @@ python encoder_test_visualization.py <model_id> <datasets_root>
 The results are saved in dim_reduction_results/.
 
 ## Pretrained models
-You can download the pretrained model from [this](https://drive.google.com/drive/folders/19fhjjAbWq60zv1Bl6Y51snGbG1r5kaN2) and extract as saved_models/20230609
+You can download the pretrained model from [this](https://drive.google.com/drive/folders/11DFU_JBGet_HEwUoPZGDfe-fDZ42eqiG) and extract as saved_models/default
 
 ## Demo results
 The audio results are [here](https://liuhaozhe6788.github.io/voice-cloning-collab/index.html)
