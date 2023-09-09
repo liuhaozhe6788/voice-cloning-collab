@@ -31,7 +31,7 @@ pip install -r requirements.txt
 ## Training
 
 ### Emotion Encoder
-The source code and the training procedures are [here](https://github.com/liuhaozhe6788/TIM-Net_SER). The training checkpoint should be in saved_models/default/INTERSECT_46_dilation_8_dropout_05_add_esd_npairLoss.
+The source code and the training procedures are [here](https://github.com/liuhaozhe6788/TIM-Net_SER). The training checkpoint should be in saved_models/default_emotion/INTERSECT_46_dilation_8_dropout_05_add_esd_npairLoss.
 
 ### Speaker Encoder 
 
@@ -147,7 +147,7 @@ python emotion_embed_visualization.py
 The results are saved in dim_reduction_results/.
 
 ## Pretrained models
-You can download the pretrained model from [this](https://drive.google.com/drive/folders/11DFU_JBGet_HEwUoPZGDfe-fDZ42eqiG) and extract as saved_models/default
+You can download the pretrained model from [this](https://drive.google.com/drive/folders/19fhjjAbWq60zv1Bl6Y51snGbG1r5kaN2) and extract as saved_models/default_emotion
 
 ## Demo results
 Audio results are [here](https://liuhaozhe6788.github.io/voice-cloning-collab/index.html).
