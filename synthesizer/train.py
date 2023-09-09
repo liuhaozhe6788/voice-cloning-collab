@@ -2,6 +2,7 @@ from datetime import datetime
 from functools import partial
 from pathlib import Path
 from os.path import exists
+import os
 
 import torch
 import torch.nn.functional as F
@@ -38,7 +39,7 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
         import tensorflow as tf
         import datetime
         # Hide GPU from visible devices
-        log_dir = f"log/synthesizer/tensorboard/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        log_dir = f"log/vc/synthesizer/tensorboard/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         train_summary_writer = tf.summary.create_file_writer(log_dir)
     models_dir.mkdir(exist_ok=True)
 
@@ -135,8 +136,11 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
     train_dataset = SynthesizerDataset(train_metadata_fpath, train_mel_dir, train_embed_dir, hparams)
     dev_dataset = SynthesizerDataset(dev_metadata_fpath, dev_mel_dir, dev_embed_dir, hparams)
 
-    # best_loss_file_path = "synthesizer_loss/best_loss.npy"
-    # best_loss = np.load(best_loss_file_path)[0] if exists(best_loss_file_path) else 1000
+    best_loss_file_path = "synthesizer_loss/best_loss.npy"
+    best_loss = np.load(best_loss_file_path)[0] if exists(best_loss_file_path) else 1000
+
+    if not exists("synthesizer_loss"):
+        os.makedirs("synthesizer_loss")
 
     # profiler = Profiler(summarize_every=10, disabled=False)
     for i, session in enumerate(hparams.tts_schedule):
@@ -263,9 +267,10 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
 
                     # Must save latest optimizer state to ensure that resuming training
                     # doesn't produce artifacts
-                    # best_loss = dev_loss
-                    # np.save(best_loss_file_path, np.array([best_loss]))
-                    model.save(weights_fpath, optimizer)
+                    if dev_loss < best_loss:
+                        best_loss = dev_loss
+                        np.save(best_loss_file_path, np.array([best_loss]))
+                        model.save(weights_fpath, optimizer)
 
                 # Evaluate model to generate dev samples
                 # epoch_eval = hparams.tts_eval_interval == -1 and i == steps_per_epoch  # If epoch is done

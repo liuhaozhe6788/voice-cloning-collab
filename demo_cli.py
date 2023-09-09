@@ -11,7 +11,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument("--run_id", type=str, default="20230609", help= \
+    parser.add_argument("--run_id", type=str, default="default", help= \
     "Name for this model. By default, training outputs will be stored to saved_models/<run_id>/. If a model state "
     "from the same run ID was previously saved, the training will restart from there. Pass -f to overwrite saved "
     "states and restart from scratch.")
@@ -138,10 +138,7 @@ if __name__ == '__main__':
     while True:
         # try:
         # Get the reference audio filepath
-        # enter the number of reference audios
-        message1 = "Please enter the number of reference audios:\n"
-        num_of_input_audio = int(input(message1))
-        # num_of_input_audio = 1
+        num_of_input_audio = 1
 
         for i in range(num_of_input_audio):
             # Computing the embedding
@@ -219,7 +216,8 @@ if __name__ == '__main__':
 
         start_syn = time.time()
         # Generating the spectrogram
-        text = input("Write a sentence to be synthesized:\n")
+        # text = input("Write a sentence to be synthesized:\n")
+        text = "Mechanics is a branch of physics that deals with the behavior of physical bodies under the influence of various forces. The study of mechanics is important in understanding the behavior of machines, the motion of objects, and the principles of engineering. Mechanics has been an essential part of physics since ancient times and has continued to evolve with advancements in science and technology. This paper will discuss the principles of mechanics, the laws of motion, and the applications of mechanics in engineering and technology."
 
         # If seed is specified, reset torch seed and force synthesizer reload
         if args.seed is not None:
@@ -236,19 +234,30 @@ if __name__ == '__main__':
         texts = preprocess_text(text)
         print(f"the list of inputs texts:\n{texts}")
 
-        embeds = [embed] * len(texts)
-        specs, alignments, stop_tokens = synthesizer.synthesize_spectrograms(texts, embeds, require_visualization=True)
+        # embeds = [embed] * len(texts)
+
+        specs = []
+        alignments = []
+        stop_tokens = []
+
+        for text in texts:
+            spec, align, stop_token = synthesizer.synthesize_spectrograms([text], [embed], require_visualization=True)
+            specs.append(spec[0])
+            alignments.append(align[0])
+            stop_tokens.append(stop_token[0])
 
         breaks = [spec.shape[1] for spec in specs]
         spec = np.concatenate(specs, axis=1)
+        alignments = np.array(alignments)
+        stop_tokens = np.array(stop_tokens)
         
 
         ## Save synthesizer visualization results
         if not os.path.exists("syn_results"):
             os.mkdir("syn_results")
-        # save_attention_multiple(alignments, "syn_results/attention")
-        # save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
-        # save_spectrogram(spec, "syn_results/mel")
+        save_attention_multiple(alignments, "syn_results/attention")
+        save_stop_tokens(stop_tokens, "syn_results/stop_tokens")
+        save_spectrogram(spec, "syn_results/mel")
         print("Created the mel spectrogram")
 
         end_syn = time.time()

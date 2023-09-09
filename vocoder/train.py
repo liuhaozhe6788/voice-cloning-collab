@@ -25,7 +25,7 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
         import tensorflow as tf
         import datetime
         # Hide GPU from visible devices
-        log_dir = f"log/vocoder/tensorboard/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        log_dir = f"log/vc/vocoder/tensorboard/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         train_summary_writer = tf.summary.create_file_writer(log_dir)
     # Check to make sure the hop length is correctly factorised
     train_syn_dir = syn_dir.joinpath("train")
