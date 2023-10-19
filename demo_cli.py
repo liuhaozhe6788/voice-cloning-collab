@@ -246,10 +246,7 @@ if __name__ == '__main__':
             stop_tokens.append(stop_token[0])
 
         breaks = [spec.shape[1] for spec in specs]
-        spec = np.concatenate(specs, axis=1)
-        alignments = np.array(alignments)
-        stop_tokens = np.array(stop_tokens)
-        
+        spec = np.concatenate(specs, axis=1)      
 
         ## Save synthesizer visualization results
         if not os.path.exists("syn_results"):
