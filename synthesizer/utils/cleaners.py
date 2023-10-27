@@ -132,7 +132,7 @@ def letter2pronunciation(text):
 
     def convert(match):
         char_list = [*match]
-        if char_list[-1] is 's' and len(char_list) < 5:
+        if char_list[-1] == 's' and len(char_list) < 5:
             for idx in range(len(char_list)):
                 if idx < len(char_list) - 1:
                     char_list[idx] = _alphabet2pronunciation.get(char_list[idx], char_list[idx])
