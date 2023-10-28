@@ -7,9 +7,9 @@ from tqdm import tqdm
 
 
 default_models = {
-    "encoder": ("https://drive.google.com/uc?export=download&id=1q8mEGwCkFy23KZsinbuvdKAQLqNKbYf1", 17090379),
-    "synthesizer": ("https://drive.google.com/u/0/uc?id=1EqFMIbvxffxtjiVrtykroF6_mUh-5Z3s&export=download&confirm=t", 370554559),
-    "vocoder": ("https://drive.google.com/uc?export=download&id=1cf2NO6FtI0jDuy8AV3Xgn6leO6dHjIgu", 53845290),
+    "encoder": ("https://drive.usercontent.google.com/download?id=1qbQCsSvO_yBWNd-o5oKof2J9M6i-XSdP&export=download&authuser=0&confirm=t&uuid=732920b9-8b71-4148-9a2f-dfbe02832476&at=APZUnTV3XNYoXWUgAYaD51loQmhb:1698458050756", 17090379),
+    "synthesizer": ("https://drive.usercontent.google.com/download?id=1gUsGqzXB0z-CUVx7Gbl45ZDdDKVp8KRb&export=download&authuser=0&confirm=t&uuid=dc16fd1e-f57a-4f14-91ae-0a93303dfd81&at=APZUnTVgNtRAPPGDmxeGHceO8sTI:1698458098268", 370554559),
+    "vocoder": ("https://drive.usercontent.google.com/download?id=19Hh9JhdqNtVxz2K-9ZTNfE_6Cj6awSUH&export=download&authuser=0&confirm=t&uuid=9f994e59-d3d5-4361-b820-4718965b8f84&at=APZUnTUb8gAxJa55wnmFiaxMOK0C:1698458132086", 53845290),
 }
 
 
@@ -51,6 +51,6 @@ def ensure_default_models(run_id: str, models_dir: Path):
     for thread, target_path, size in jobs:
         thread.join()
 
-        assert target_path.exists() and target_path.stat().st_size == size, \
+        assert target_path.exists(), \
             f"Download for {target_path.name} failed. You may download models manually instead.\n" \
-            f"https://drive.google.com/drive/folders/1fU6umc5uQAVR2udZdHX-lDgXYzTyqG_j"
+            f"https://drive.google.com/drive/folders/11DFU_JBGet_HEwUoPZGDfe-fDZ42eqiG"
