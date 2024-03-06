@@ -1,7 +1,7 @@
 # Real-Time Voice Cloning v2
 
 ### What is this?
-It is an improved version of [Real-Time-Voice-Cloning](https://github.com/CorentinJ/Real-Time-Voice-Cloning). Our emotion voice cloning implementation is [here](https://github.com/liuhaozhe6788/voice-cloning-collab/tree/add_emotion)!
+It is an improved version of [Real-Time-Voice-Cloning](https://github.com/CorentinJ/Real-Time-Voice-Cloning).
 
 ## Installation
 1. Install [ffmpeg](https://ffmpeg.org/download.html#get-packages). This is necessary for reading audio files.
